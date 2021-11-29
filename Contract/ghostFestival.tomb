@@ -1,0 +1,345 @@
+﻿struct box_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct box_ram
+{
+	name:string;
+    description: string;
+    imageUrl:string;
+    inforUrl:string;
+}
+
+struct hammer_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct hammer_ram
+{
+	name:string;
+    description: string;
+	imageUrl:string;
+    inforUrl:string;
+    model:string;
+	hammerType:string;
+	level:number;
+	power:number;
+    infusedType1:string;
+    infusedType2:string;
+}
+
+struct ghost_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct ghost_ram
+{
+	name:string;
+    description:string;
+	imageUrl:string;
+    inforUrl:string;
+    model:string;
+	ghostType:string;
+    level:number;
+    health:number;
+    infusedType1:string;
+    infusedType2:string;
+    unboxed:bool;
+    gender:string;
+}
+
+// hamma token contract
+token GFEST{
+
+	global _addressOwner: address;
+    global _contractName:string;
+
+	const HAMMER_SERIES: number = 1;
+//	const HAMMER_SUPPLY: number = 22350;
+
+    const GHOST_SERIES: number = 1;
+//	const GHOST_SUPPLY: number = 6600;
+
+    // token name
+    property name:string = "Ghost Festival";
+    // token version
+    property version:string = "1.0";
+    // token is transferable
+    property isTransferable:bool = true;
+    // token is not fungible
+    property isFungible:bool = false;
+    // token is burnable
+    property isBurnable:bool = true;
+    property isFinite: bool = false;
+    // token has no max supply
+    property maxSupply:number = 0; //HAMMER_SUPPLY + GHOST_SUPPLY;
+    // token owner address
+    property owner:address = _addressOwner;
+    // mandatory symbol
+    property symbol:string = $THIS_SYMBOL;
+
+    nft boxNft<box_rom, box_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageUrl;
+		}
+
+        property infoURL: string {
+			return _RAM.inforUrl;
+		}
+    }
+
+	nft hammerNft<hammer_rom, hammer_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageUrl;
+		}
+
+        property infoURL: string {
+			return _RAM.inforUrl;
+		}
+
+        property model: string {
+			return _RAM.model;
+		}
+
+		property hammerType: string {
+			return _RAM.hammerType;
+		}
+
+		property level: number {
+			return _RAM.level;
+		}
+
+	   property power: number {
+			return _RAM.power;
+	   }
+
+       property infusedType1: string {
+			return _RAM.infusedType1;
+	   }
+
+       property infusedType2: string {
+			return _RAM.infusedType2;
+	   }
+	 }
+
+    nft ghostNft<ghost_rom, ghost_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageUrl;
+		}
+
+        property infoURL: string {
+			return _RAM.inforUrl;
+		}
+
+        property model: string {
+			return _RAM.model;
+		}
+
+		property ghostType: string {
+			return _RAM.ghostType;
+		}
+
+        property level: number {
+			return _RAM.level;
+		}
+
+	   property health: number {
+			return _RAM.health;
+	   }
+
+       property infusedType1: string {
+			return _RAM.infusedType1;
+	   }
+
+       property infusedType2: string {
+			return _RAM.infusedType2;
+	   }
+
+       property unboxed: bool {
+			return _RAM.unboxed;
+	   }
+
+       property gender: string {
+			return _RAM.gender;
+	   }
+	}
+
+    // librairies import
+    import Runtime;
+    import Token;
+	import Map;
+	import NFT;
+    import Time;
+    import UID;
+    //import Market;
+    //import Storage;
+    //import Bytes;
+
+    // constructor with owner and all global var
+    constructor(owner:address)
+    {
+        _addressOwner:= owner;
+        _contractName:= "GFEST NFT";
+    }
+
+    /// @dev Update the current token contract owner address to another address.
+    /// @param newOwner - Address of the new owner - address
+    public updateOwner(newOwner:address)
+    {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        // set new owner
+        _addressOwner:= newOwner;
+    }
+
+    public withdraw(price: number)
+    {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        local thisAddr:address := $THIS_ADDRESS;
+        Token.transfer(thisAddr, _addressOwner, "SOUL", price);
+    }
+
+    public mintBox(editionId:number, editionMax:number, creator:address, mintTicker:string, royalties:number, name:string, description:string,
+    imageURL:string, infoURL:string)
+    {
+
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(creator), "invalid witness");
+
+        local price: number := 1000000000;
+
+		local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(creator, thisAddr, "SOUL", price);
+
+        // create series
+        NFT.createSeries(creator, mintTicker, editionId, editionMax, TokenSeries.Duplicated, boxNft);
+
+        local rom:box_rom := Struct.box_rom(Time.now(), royalties);
+        local ram:box_ram := Struct.box_ram(name, description, imageURL, infoURL);
+        local tokenID:number;
+        tokenID := NFT.mint(creator, creator, mintTicker, rom, ram, editionId);
+    }
+
+	public mintHammer(editionId:number, editionMax:number, creator:address, mintTicker:string, numOfNfts:number, royalties:number, name:string, description:string,
+    imageURL:string, infoURL:string, model:string, hammerType:string, level:number, power:number, infusedType1:string, infusedType2:string)
+    {
+
+    // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(creator), "invalid witness");
+
+        // create series
+        NFT.createSeries(creator, mintTicker, editionId, editionMax, TokenSeries.Duplicated, hammerNft);
+
+        // mint numOfNfts NFT
+        while (numOfNfts > 0) { 
+            local rom:hammer_rom := Struct.hammer_rom(Time.now(), royalties);
+         // local var for ram
+            local ram:hammer_ram := Struct.hammer_ram(name, description, imageURL, infoURL, model, hammerType, level, power, infusedType1, infusedType2);
+            local tokenID:number;
+            tokenID := NFT.mint(creator, creator, mintTicker, rom, ram, editionId);
+           // loop number change
+            numOfNfts := numOfNfts - 1;
+        }
+    }
+
+   public mintGhost(editionId:number, editionMax:number, creator:address, mintTicker:string, numOfNfts:number, 
+    royalties:number, name:string, description:string, imageURL:string, infoURL:string, 
+    model:string, ghostType:string, level:number, health:number, 
+    infusedType1:string, infusedType2:string, unboxed:bool, gender:string)
+    {
+
+    // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(creator), "invalid witness");
+
+        // create series
+        NFT.createSeries(creator, mintTicker, editionId, editionMax, TokenSeries.Duplicated, ghostNft);
+
+        // mint numOfNfts NFT
+        while (numOfNfts > 0) {
+             local rom:ghost_rom := Struct.ghost_rom(Time.now(), royalties);
+            // local var for ram
+            local ram:ghost_ram := Struct.ghost_ram(name, description, imageURL, infoURL, model, ghostType, level, health, infusedType1, infusedType2, unboxed, gender);
+            local tokenID:number;
+            tokenID := NFT.mint(creator, creator, mintTicker, rom, ram, editionId);
+           // loop number change
+            numOfNfts := numOfNfts - 1;
+        }
+    }
+
+    public readROMCreated(symbol:string, id:number) : timestamp
+    {
+        local romInfo:ghost_rom := NFT.readROM<ghost_rom>(symbol, id);
+        return romInfo.created;
+    }
+
+    public readROMRoyalty(symbol:string, id:number) : number
+    {
+        local romInfo:ghost_rom := NFT.readROM<ghost_rom>(symbol, id);
+        return romInfo.royalties;
+    }
+
+	/// @dev onUpgrade trigger.
+    /// @param from - Address from - address
+	trigger onUpgrade(from:address)
+    {
+        // check is witness and is current owner
+		Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+    }
+}
