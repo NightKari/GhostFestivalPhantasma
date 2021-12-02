@@ -1,0 +1,614 @@
+﻿struct box_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct box_ram
+{
+	name:string;
+    description: string;
+    imageURL:string;
+    infoURL:string;
+}
+
+struct hammer_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct hammer_ram
+{
+	name:string;
+    description: string;
+	imageURL:string;
+    infoURL:string;
+    rarity: string;
+    model:string;
+	hammerType:string;
+	level:number;
+	power:number;
+    infusedType1:string;
+    infusedType2:string;
+}
+
+struct ghost_rom
+{
+    created:timestamp;
+    royalties:number;
+}
+
+struct ghost_ram
+{
+	name:string;
+    description:string;
+	imageURL:string;
+    infoURL:string;
+    rarity: string;
+    model:string;
+	ghostType:string;
+    level:number;
+    health:number;
+    infusedType1:string;
+    infusedType2:string;
+    unboxed:bool;
+}
+
+struct hammer_source {
+    editionId: number;
+    imageURL: string;
+    infoURL: string;
+    name: string;
+    rarity: string;
+    model: string;
+    hammerType: string;
+    level: number;
+    power: number;
+    infusedType1: string;
+    infusedType2: string;
+    currentSupply: number;
+    maxSupply: number;
+}
+
+struct ghost_source {
+    editionId: number;
+    imageURL: string;
+    infoURL: string;
+    name: string;
+    rarity: string;
+    model: string;
+    ghostType: string;
+    level: number;
+    health: number;
+    infusedType1: string;
+    infusedType2: string;
+    unboxed: bool;
+    currentSupply: number;
+    maxSupply: number;
+}
+
+// hamma token contract
+token GFEST{
+
+	global _addressOwner: address;
+    global _contractName: string;
+
+    // boxPrice for common, rare, epic
+    global _boxPrice: array<number>;
+    // hammer total supply
+    global _hammerSupply: array<number>;
+    // ghost total supply
+    global _ghostSupply: array<number>;
+
+    // royalty for hammer and ghost
+    global _royalty: number;
+
+    // common box hammer supply
+    global _commonBoxHammerSupply: array<number>;
+    // common box ghost supply
+    global _commonBoxGhostSupply: array<number>;
+
+    // rare box hammer supply
+    global _rareBoxHammerSupply: array<number>;
+    // rare box ghost supply
+    global _rareBoxGhostSupply: array<number>;
+
+    // epic box hammer supply
+    global _epicBoxHammerSupply: array<number>;
+    // rare box ghost supply
+    global _epicBoxGhostSupply: array<number>;
+
+    // hammer ending indices
+    global _hammerEnding: storage_map<number, number>;
+
+    // ghost ending indices
+    global _ghostEnding: storage_map<number, number>;
+
+    // hammer source array
+    global _hammerStorageMap: storage_map<number, hammer_source>;
+    // ghost source array
+    global _ghostStorageMap: storage_map<number, ghost_source>;
+
+    // token name
+    property name: string = "Ghost Festival";
+    // token version
+    property version:string = "1.0";
+    // token is transferable
+    property isTransferable: bool = true;
+    // token is not fungible
+    property isFungible: bool = false;
+    // token is burnable
+    property isBurnable: bool = true;
+    property isFinite: bool = false;
+    // token owner address
+    property owner: address = _addressOwner;
+    // mandatory symbol
+    property symbol: string = $THIS_SYMBOL;
+
+    nft boxNft<box_rom, box_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageURL;
+		}
+
+        property infoURL: string {
+			return _RAM.infoURL;
+		}
+    }
+
+	nft hammerNft<hammer_rom, hammer_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageURL;
+		}
+
+        property infoURL: string {
+			return _RAM.infoURL;
+		}
+
+        property rarity: string {
+			return _RAM.rarity;
+		}
+
+        property model: string {
+			return _RAM.model;
+		}
+
+		property hammerType: string {
+			return _RAM.hammerType;
+		}
+
+		property level: number {
+			return _RAM.level;
+		}
+
+	   property power: number {
+			return _RAM.power;
+	   }
+
+       property infusedType1: string {
+			return _RAM.infusedType1;
+	   }
+
+       property infusedType2: string {
+			return _RAM.infusedType2;
+	   }
+	 }
+
+    nft ghostNft<ghost_rom, ghost_ram> {
+        property created:timestamp {
+             return _ROM.created;
+        }
+
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageURL;
+		}
+
+        property infoURL: string {
+			return _RAM.infoURL;
+		}
+
+        property rarity: string {
+			return _RAM.rarity;
+		}
+
+        property model: string {
+			return _RAM.model;
+		}
+
+		property ghostType: string {
+			return _RAM.ghostType;
+		}
+
+        property level: number {
+			return _RAM.level;
+		}
+
+	   property health: number {
+			return _RAM.health;
+	   }
+
+       property infusedType1: string {
+			return _RAM.infusedType1;
+	   }
+
+       property infusedType2: string {
+			return _RAM.infusedType2;
+	   }
+
+       property unboxed: bool {
+			return _RAM.unboxed;
+	   }
+	}
+
+    // librairies import
+    import Runtime;
+    import Token;
+	import NFT;
+    import Time;
+    import Random;
+    import Array;
+    import Map;
+
+    // constructor with owner and all global var
+    constructor(owner:address)
+    {
+        _addressOwner:= owner;
+        _contractName:= "GFEST NFT";
+
+        _royalty := 3;
+
+        _boxPrice[0] := 1500000000;
+        _boxPrice[1] := 4500000000;
+        _boxPrice[2] := 25000000000;
+
+        _hammerSupply[0] := 9000;
+        _hammerSupply[1] := 3000;
+        _hammerSupply[2] := 500;
+
+        _ghostSupply[0] := 9000;
+        _ghostSupply[1] := 3000;
+        _ghostSupply[2] := 500;
+
+        _commonBoxHammerSupply[0] := 7200;
+        _commonBoxHammerSupply[1] := 1575;
+        _commonBoxHammerSupply[2] := 225;
+
+        _commonBoxGhostSupply[0] := 7200;
+        _commonBoxGhostSupply[1] := 1575;
+        _commonBoxGhostSupply[2] := 225;
+
+        _rareBoxHammerSupply[0] := 525;
+        _rareBoxHammerSupply[1] := 2325;
+        _rareBoxHammerSupply[2] := 150;
+
+        _rareBoxGhostSupply[0] := 525;
+        _rareBoxGhostSupply[1] := 2325;
+        _rareBoxGhostSupply[2] := 150;
+
+        _epicBoxHammerSupply[0] := 10;
+        _epicBoxHammerSupply[1] := 25;
+        _epicBoxHammerSupply[2] := 465;
+
+        _epicBoxGhostSupply[0] := 10;
+        _epicBoxGhostSupply[1] := 25;
+        _epicBoxGhostSupply[2] := 465;
+    }
+
+    /// @dev Update the current token contract owner address to another address.
+    /// @param newOwner - Address of the new owner - address
+    public updateOwner(newOwner:address)
+    {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        // set new owner
+        _addressOwner := newOwner;
+    }
+
+    public setHammerEndings(hammerEnding: array<number>, count: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        local index: number := 0;
+        while (index < count) {
+            _hammerEnding.set(index, hammerEnding[index]);
+            index := index + 1;
+        }
+    }
+
+    public setGhostEndings(ghostEnding: array<number>, count: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        local index: number := 0;
+        while (index < count) {
+            _ghostEnding.set(index, ghostEnding[index]);
+            index := index + 1;
+        }
+    }
+
+    public createSeries() {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        // create series for box
+        local index: number := 1;
+        while (index <= 3) {
+            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index, 50000, TokenSeries.Duplicated, boxNft);
+            index := index + 1;
+        }
+
+        // create series for hammer
+        index := 1;
+        while (index <= _hammerEnding.get(3)) {
+            local currentHammer: hammer_source := _hammerStorageMap.get(index);
+            local maxSupply: number := currentHammer.maxSupply;
+            NFT.createSeries(_addressOwner, "Hammer", index, maxSupply, TokenSeries.Duplicated, hammerNft);
+            index := index + 1;
+        }
+
+        // create series for ghost
+        index := 1;
+        while (index <= _ghostEnding.get(3)) {
+            local currentGhost: ghost_source := _ghostStorageMap.get(index);
+            local maxSupply: number := currentGhost.maxSupply;
+            NFT.createSeries(_addressOwner, "Ghost", index, maxSupply, TokenSeries.Duplicated, ghostNft);
+            index := index + 1;
+        }  
+    }
+
+    public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, level: number, power: number, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
+        _hammerStorageMap.set(editionId, Struct.hammer_source(editionId, imageURL, infoURL, name, rarity, model, hammerType, level, power, infusedType1, infusedType2, currentSupply, maxSupply));
+    }
+
+    public setGhostSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, ghostType: string, level: number, health: number, infusedType1: string, infusedType2: string, unboxed: bool, currentSupply: number, maxSupply: number) {
+        _ghostStorageMap.set(editionId, Struct.ghost_source(editionId, imageURL, infoURL, name, rarity, model, ghostType, level, health, infusedType1, infusedType2, unboxed, currentSupply, maxSupply));
+    }
+
+    public withdraw(price: number)
+    {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        local thisAddr: address := $THIS_ADDRESS;
+        Token.transfer(thisAddr, _addressOwner, "SOUL", price);
+    }
+
+    private chooseRarityType(commonSupply: number, rareSupply: number, epicSupply: number): number {
+
+        local rarityType: number := 0;
+        local totalSupply: number := commonSupply + rareSupply + epicSupply;
+        local rarityTypeValue :number := Random.generate() % totalSupply; // decides whether to choose common, rare or epic
+        if (rarityTypeValue > commonSupply + rareSupply) {
+            rarityType := 2;
+        }
+        else {
+            if (rarityTypeValue > commonSupply) {
+                rarityType := 1;
+            }
+        }
+        return rarityType;
+
+    }
+
+    private chooseNftIndex(nftType: number, rarityType: number): number {
+        local temp: number;
+        local startIndex: number;
+        local subTotal: number := 0;
+
+        local randomNFT: number;
+        if (nftType == 1) {
+            randomNFT := Random.generate() % _hammerSupply[rarityType];
+        } else {
+            randomNFT := Random.generate() % _ghostSupply[rarityType];
+        }
+
+        if (rarityType > 0) {
+            startIndex := 1;
+        } else {
+            temp := rarityType - 1;
+            if (nftType == 1) {
+                startIndex := _hammerEnding.get(temp) + 1;
+            } else {
+                startIndex := _ghostEnding.get(temp) + 1;
+            }
+        }
+
+        local endIndex: number;
+        if (nftType == 1) {
+            endIndex := _hammerEnding.get(rarityType);
+        } else {
+            endIndex := _ghostEnding.get(rarityType);
+        }
+        // calculate hammer, ghost index value that fits
+        while(startIndex <= endIndex) {
+            local currentSupply: number;
+            if (nftType == 1) {
+                local currentHammer: hammer_source := _hammerStorageMap.get(startIndex);
+                currentSupply := currentHammer.currentSupply;
+            } else {
+                local currentGhost: ghost_source := _ghostStorageMap.get(startIndex);
+                currentSupply := currentGhost.currentSupply;
+            }
+            
+            subTotal := subTotal + currentSupply;
+            if (subTotal >= randomNFT) {
+                break; // hammerIndex at this moment would be fine
+            }
+            startIndex := startIndex + 1;
+        }
+        return startIndex;
+    }
+
+    private decreaseSupplyAtIndex(nftType: number, index: number) {
+        if (nftType == 1) {
+            local currentHammer: hammer_source := _hammerStorageMap.get(index);
+            currentHammer := Struct.hammer_source(currentHammer.editionId, currentHammer.imageURL, currentHammer.infoURL, currentHammer.name, currentHammer.rarity, currentHammer.model, currentHammer.hammerType, currentHammer.level, currentHammer.power, currentHammer.infusedType1, currentHammer.infusedType2, currentHammer.currentSupply, currentHammer.maxSupply);
+            _hammerStorageMap.set(index, currentHammer);
+        } else {
+            local currentGhost: ghost_source := _ghostStorageMap.get(index);
+            currentGhost := Struct.ghost_source(currentGhost.editionId, currentGhost.imageURL, currentGhost.infoURL, currentGhost.name, currentGhost.rarity, currentGhost.model, currentGhost.ghostType, currentGhost.level, currentGhost.health, currentGhost.infusedType1, currentGhost.infusedType2, currentGhost.unboxed, currentGhost.currentSupply, currentGhost.maxSupply);
+            _ghostStorageMap.set(index, currentGhost);
+        }
+    }
+
+    private mintAndInfuse(owner:address, typeOfBox:number, hammerIndex:number, ghostIndex:number) {
+        // series already created in constructor, so just mint and infuse here
+        // mint box
+        local rom1:box_rom := Struct.box_rom(Time.now(), _royalty);
+        local ram1:box_ram := Struct.box_ram("GFEST Box", "GFEST Box", "", "");
+        local boxTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom1, ram1, typeOfBox);
+
+        // mint hammer
+        local currentHammer: hammer_source := _hammerStorageMap.get(hammerIndex);
+        local rom2:hammer_rom := Struct.hammer_rom(Time.now(), _royalty);
+        local ram2:hammer_ram := Struct.hammer_ram(currentHammer.name, "", currentHammer.imageURL, currentHammer.infoURL, currentHammer.rarity, currentHammer.model, currentHammer.hammerType, currentHammer.level, currentHammer.power, currentHammer.infusedType1, currentHammer.infusedType2);
+        local hammerTokenID: number := NFT.mint(_addressOwner, owner, "Hammer", rom2, ram2, currentHammer.editionId);
+
+        // mint ghost
+        local currentGhost: ghost_source := _ghostStorageMap.get(ghostIndex);
+        local rom3: ghost_rom := Struct.ghost_rom(Time.now(), _royalty);
+        local ram3: ghost_ram := Struct.ghost_ram(currentGhost.name, "", currentGhost.imageURL, currentGhost.infoURL, currentGhost.rarity, currentGhost.model, currentGhost.ghostType, currentGhost.level, currentGhost.health, currentGhost.infusedType1, currentGhost.infusedType2, currentGhost.unboxed);
+        local ghostTokenID: number := NFT.mint(_addressOwner, owner, "Ghost", rom3, ram3, currentGhost.editionId);
+
+        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, "Hammer", hammerTokenID);
+        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, "Ghost", ghostTokenID);
+    }
+
+    public mint(owner:address, typeOfBox:number, numOfBox:number)
+    {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        local boxHammerSupply: array<number>;
+        local boxGhostSupply: array<number>;
+
+        local hammerType: number := 0; // 0: common, 1: rare, 2: epic
+        local ghostType: number := 0; // 0: common, 1: rare, 2: epic
+
+        if (typeOfBox == 1) { // common box
+            boxHammerSupply[0] := _commonBoxHammerSupply[0];
+            boxHammerSupply[1] := _commonBoxHammerSupply[1];
+            boxHammerSupply[2] := _commonBoxHammerSupply[2];
+
+            boxGhostSupply[0] := _commonBoxGhostSupply[0];
+            boxGhostSupply[1] := _commonBoxGhostSupply[1];
+            boxGhostSupply[2] := _commonBoxGhostSupply[2];
+        }
+        else {
+            if (typeOfBox == 2) { // rare box
+                boxHammerSupply[0] := _rareBoxHammerSupply[0];
+                boxHammerSupply[1] := _rareBoxHammerSupply[1];
+                boxHammerSupply[2] := _rareBoxHammerSupply[2];
+
+                boxGhostSupply[0] := _rareBoxGhostSupply[0];
+                boxGhostSupply[1] := _rareBoxGhostSupply[1];
+                boxGhostSupply[2] := _rareBoxGhostSupply[2];
+            } else {
+                boxHammerSupply[0] := _epicBoxHammerSupply[0];
+                boxHammerSupply[1] := _epicBoxHammerSupply[1];
+                boxHammerSupply[2] := _epicBoxHammerSupply[2];
+
+                boxGhostSupply[0] := _epicBoxGhostSupply[0];
+                boxGhostSupply[1] := _epicBoxGhostSupply[1];
+                boxGhostSupply[2] := _epicBoxGhostSupply[2];
+            }
+        }
+
+        local hammerCurrentSupply :number := boxHammerSupply[0] + boxHammerSupply[1] + boxHammerSupply[2];
+        local ghostCurrentSupply :number := boxGhostSupply[0] + boxGhostSupply[1] + boxGhostSupply[2];
+
+        // check the current type of box is all sold out
+        Runtime.expect(hammerCurrentSupply > 0, "The box type you required is sold out");
+        Runtime.expect(ghostCurrentSupply > 0, "The box type you required is sold out");
+
+        hammerType := this.chooseRarityType(boxHammerSupply[0], boxHammerSupply[1], boxHammerSupply[2]);
+        ghostType := this.chooseRarityType(boxGhostSupply[0], boxGhostSupply[1], boxGhostSupply[2]);
+
+        local hammerIndex: number;
+        local ghostIndex: number;
+
+        hammerIndex := this.chooseNftIndex(1, hammerType); // 1 means hammer
+        ghostIndex := this.chooseNftIndex(2, ghostType); // 2 means ghost
+
+        // Process the payment from the user in SOUL
+        local thisAddr:address := $THIS_ADDRESS;
+		Token.transfer(owner, thisAddr, "SOUL", _boxPrice[typeOfBox]);
+
+        // mint Box, hammer and ghost, then infuse hammer and ghost into a box
+        this.mintAndInfuse(owner, typeOfBox, hammerIndex, ghostIndex);
+
+        // currentSupply of _hammerStorageMap and _ghostStorageMap at hammerIndex and ghostIndex should be decreased
+        this.decreaseSupplyAtIndex(1, hammerIndex);
+        this.decreaseSupplyAtIndex(2, ghostIndex);
+
+        // decrease current supply for ghost and hammer for the selected type
+        if (typeOfBox == 1) {
+            _commonBoxHammerSupply[hammerType] := _commonBoxHammerSupply[hammerType] - 1;
+            _commonBoxGhostSupply[ghostType] := _commonBoxGhostSupply[ghostType] - 1;
+        }
+        else {
+            if (typeOfBox == 2) {
+                _rareBoxHammerSupply[hammerType] := _rareBoxHammerSupply[hammerType] - 1;
+                _rareBoxGhostSupply[ghostType] := _rareBoxGhostSupply[ghostType] - 1;
+            } else {
+                _epicBoxHammerSupply[hammerType] := _epicBoxHammerSupply[hammerType] - 1;
+                _epicBoxGhostSupply[ghostType] := _epicBoxGhostSupply[ghostType] - 1;
+            }
+        }
+        _hammerSupply[hammerType] := _hammerSupply[hammerType] - 1;
+        _ghostSupply[ghostType] := _ghostSupply[ghostType] - 1;
+    }
+
+	/// @dev onUpgrade trigger.
+    /// @param from - Address from - address
+	trigger onUpgrade(from:address)
+    {
+        // check is witness and is current owner
+		Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+    }
+}
