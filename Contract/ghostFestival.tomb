@@ -72,22 +72,8 @@ token GFEST{
     global _royalty: number;
 
     // individual supplies
-//    global _raritySupplies: array<number>;
     global _raritySupplies: storage_list<number>;
-    global _testStorageList: storage_list<number>;
-/*
-    global _commonBoxHammerCommonSupply: number;
 
-    global _commonBoxGhostCommonSupply: number;
-
-    global _rareBoxHammerCommonSupply: number;
-
-    global _rareBoxGhostCommonSupply: number;
-
-    global _epicBoxHammerCommonSupply: number;
-    
-    global _epicBoxGhostCommonSupply: number;
-*/
     // hammer ending indices
     global _hammerEnding: storage_map<number, number>;
 
@@ -327,19 +313,7 @@ token GFEST{
         _ghostSupply[0] := 6;
         _ghostSupply[1] := 6;
         _ghostSupply[2] := 3;
-/*
-        _commonBoxHammerCommonSupply := 3;
 
-        _commonBoxGhostCommonSupply := 3;
-
-        _rareBoxHammerCommonSupply := 2;
-
-        _rareBoxGhostCommonSupply := 2;
-
-        _epicBoxHammerCommonSupply := 1;
-        
-        _epicBoxGhostCommonSupply := 1;
-*/
         _raritySupplies.add(3);
         _raritySupplies.add(2);
         _raritySupplies.add(1);
@@ -358,31 +332,7 @@ token GFEST{
         _raritySupplies.add(1);
         _raritySupplies.add(1);
         _raritySupplies.add(1);
-/*        
-        _raritySupplies[0] := 3;
-        _raritySupplies[1] := 2;
-        _raritySupplies[2] := 1;
 
-        _raritySupplies[3] := 3;
-        _raritySupplies[4] := 2;
-        _raritySupplies[5] := 1;
-
-        _raritySupplies[6] := 2;
-        _raritySupplies[7] := 3;
-        _raritySupplies[8] := 1;
-
-        _raritySupplies[9] := 2;
-        _raritySupplies[10] := 3;
-        _raritySupplies[11] := 1;
-
-        _raritySupplies[12] := 1;
-        _raritySupplies[13] := 1;
-        _raritySupplies[14] := 1;
-
-        _raritySupplies[15] := 1;
-        _raritySupplies[16] := 1;
-        _raritySupplies[17] := 1;
-*/
         _hammerStrPropertyCount := 8;
         _ghostStrPropertyCount := 8;
 
@@ -618,8 +568,8 @@ token GFEST{
         }
         local ghostTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom3, ram3, ghostIndex + 200);
 
-//        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, hammerTokenID);
-//        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, ghostTokenID);
+        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, hammerTokenID);
+        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, ghostTokenID);
     }
 
     public mint(owner:address, typeOfBox:number, numOfBox:number)
@@ -800,44 +750,8 @@ token GFEST{
         return _tempHammerType*1000 + _tempGhostType*100 + _tempHammerIndex*10 + _tempGhostIndex;
     }
 
-    public getTempHammerStr(hammerIndex: number, index: number): string {
-        if (hammerIndex == 1) {
-            return _hammerStrStorageMap.get(index);
-        } else {
-            return _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + index);
-        }
-    }
-
-    public getTempGhostStr(ghostIndex: number, index: number): string {
-        if (ghostIndex == 1) {
-            return _ghostStrStorageMap.get(index);
-        } else {
-            return _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + index);
-        }
-    }
-/*
-    public testModifyArray() {
-        _raritySupplies[10] := _raritySupplies[10] - 1;
-        _raritySupplies[0] := _raritySupplies[0] - 1;
-        _raritySupplies[12] := _raritySupplies[12] - 1;
-        _raritySupplies[15] := _raritySupplies[15] - 1;
-        _raritySupplies[3] := _raritySupplies[3] - 1;
-    }
-*/
     public getRaritySupplies(index: number) : number {
         return _raritySupplies.get(index);
-    }
-
-    public addTetList(newNumber: number) {
-        _testStorageList.add(newNumber);
-    }
-
-    public getTestListCount(): number {
-        return _testStorageList.count();
-    }
-
-    public getTestList(index: number) : number {
-        return _testStorageList.get(index);
     }
     
     public getTempCommonSupply(): number {
@@ -854,81 +768,6 @@ token GFEST{
 
     public getTempSupplies(): number {
         return _hammerSupply[0]*100000 + _hammerSupply[1]*10000 + _hammerSupply[2]*1000 + _ghostSupply[0]*100 + _ghostSupply[1]*10 + _ghostSupply[2];
-    }
-
-    public getTempHammerCurrentSupply(index: number): number {
-        return _hammerCurSupplyStorageMap.get(index);
-    }
-
-    public getTempGhostCurrentSupply(index: number): number {
-        return _ghostCurSupplyStorageMap.get(index);
-    }
-
-    public getTempRandomHammerNFT(rarityType: number): number{
-        return Random.generate() % _hammerSupply[rarityType];
-    }
-
-    public getTempRandomGhostNFT(rarityType: number): number{
-        return Random.generate() % _ghostSupply[rarityType];
-    }
-
-    public getTempStartEndIndex(rarityType: number): number {
-        local startIndex: number := _hammerEnding.get(rarityType) + 1;
-        local endIndex: number := _hammerEnding.get(rarityType + 1);
-
-        return startIndex * 10 + endIndex;
-    }
-
-    public getTempStartEndIndex2(nftType: number, rarityType: number): number {
-        local startIndex: number;
-        local subTotal: number := 0;
-
-        local randomNFT: number;
-        if (nftType == 1) {
-            randomNFT := Random.generate() % _hammerSupply[rarityType];
-        } else {
-            randomNFT := Random.generate() % _ghostSupply[rarityType];
-        }
-        randomNFT := randomNFT + 1;
-
-        if (rarityType == 0) {
-            startIndex := 1;
-        } else {
-            if (nftType == 1) {
-                startIndex := _hammerEnding.get(rarityType) + 1;
-            } else {
-                startIndex := _ghostEnding.get(rarityType) + 1;
-            }
-        }
-
-        local endIndex: number;
-        if (nftType == 1) {
-            endIndex := _hammerEnding.get(rarityType + 1);
-        } else {
-            endIndex := _ghostEnding.get(rarityType + 1);
-        }
-        // calculate hammer, ghost index value that fits
-        local currentSupply: number;
-        local isInside: number := 0;
-        while(true) {
-            if (startIndex > endIndex) {
-                break;
-            }
-            if (nftType == 1) {
-                currentSupply := _hammerCurSupplyStorageMap.get(startIndex);
-            } else {
-                currentSupply := _ghostCurSupplyStorageMap.get(startIndex);
-            }
-            
-            subTotal := subTotal + currentSupply;
-            if (subTotal >= randomNFT) {
-                isInside := 1;
-                break; // hammerIndex at this moment would be fine
-            }
-            startIndex := startIndex + 1;
-        }
-
-        return startIndex*100000 + endIndex*10000 + subTotal*1000 + currentSupply*100 + isInside*10 + randomNFT;
     }
 
 	/// @dev onUpgrade trigger.
