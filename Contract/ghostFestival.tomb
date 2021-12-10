@@ -368,49 +368,28 @@ token GFEST{
     }
 
     public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        if (editionId == 1) {
-            _hammerStrStorageMap.set(1, imageURL);
-            _hammerStrStorageMap.set(2, infoURL);
-            _hammerStrStorageMap.set(3, name);
-            _hammerStrStorageMap.set(4, rarity);
-            _hammerStrStorageMap.set(5, model);
-            _hammerStrStorageMap.set(6, hammerType);
-            _hammerStrStorageMap.set(7, infusedType1);
-            _hammerStrStorageMap.set(8, infusedType2);
-        } else {
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 1, imageURL);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 2, infoURL);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 3, name);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 4, rarity);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 5, model);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 6, hammerType);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 7, infusedType1);
-            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 8, infusedType2);
-        }
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 1, imageURL);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 2, infoURL);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 3, name);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 4, rarity);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 5, model);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 6, hammerType);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 7, infusedType1);
+        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 8, infusedType2);
+
         _hammerCurSupplyStorageMap.set(editionId, currentSupply);
         _hammerMaxSupplyStorageMap.set(editionId, maxSupply);
     }
 
     public setGhostSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, ghostType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        if (editionId == 1) {
-            _ghostStrStorageMap.set(1, imageURL);
-            _ghostStrStorageMap.set(2, infoURL);
-            _ghostStrStorageMap.set(3, name);
-            _ghostStrStorageMap.set(4, rarity);
-            _ghostStrStorageMap.set(5, model);
-            _ghostStrStorageMap.set(6, ghostType);
-            _ghostStrStorageMap.set(7, infusedType1);
-            _ghostStrStorageMap.set(8, infusedType2);
-        } else {
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 1, imageURL);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 2, infoURL);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 3, name);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 4, rarity);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 5, model);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 6, ghostType);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 7, infusedType1);
-            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 8, infusedType2);
-        }
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 1, imageURL);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 2, infoURL);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 3, name);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 4, rarity);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 5, model);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 6, ghostType);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 7, infusedType1);
+        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 8, infusedType2);
 
         _ghostCurSupplyStorageMap.set(editionId, currentSupply);
         _ghostMaxSupplyStorageMap.set(editionId, maxSupply);
