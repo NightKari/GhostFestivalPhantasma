@@ -55,6 +55,21 @@ struct ghost_ram
     unboxed:bool;
 }
 
+struct badge_rom
+{
+//    created:timestamp;
+    royalties:number;
+}
+
+struct badge_ram
+{
+	name:string;
+    description: string;
+    imageURL:string;
+    infoURL:string;
+    rarity: string;
+}
+
 // hamma token contract
 token GFEST{
 
@@ -90,10 +105,14 @@ token GFEST{
     global _ghostMaxSupplyStorageMap: storage_map<number, number>;
     global _ghostStrPropertyCount: number;
 
-    global _tempHammerType: number;
-    global _tempGhostType: number;
-    global _tempHammerIndex: number;
-    global _tempGhostIndex: number;
+    global _badgeStrStorageMap: storage_map<number, string>;
+    global _badgeCurSupplyStorageMap: storage_map<number, number>;
+    global _badgeMaxSupplyStorageMap: storage_map<number, number>;
+    global _badgeStrPropertyCount: number;
+
+    global _hammerSeriesShift: number;
+    global _ghostSeriesShift: number;
+    global _badgeSeriesShift: number;
 
     // token name
     property name: string = "Ghost Festival";
@@ -252,6 +271,37 @@ token GFEST{
 	   }
 	}
 
+    nft badgeNft<badge_rom, badge_ram> {
+/*
+        property created:timestamp {
+             return _ROM.created;
+        }
+*/
+        property royalties:number {
+             return _ROM.royalties;
+        }
+
+		property name: string {
+			return _RAM.name;
+		}
+
+	    property description:string {
+            return _RAM.description;
+        }
+
+		property imageURL: string {
+			return _RAM.imageURL;
+		}
+
+        property infoURL: string {
+			return _RAM.infoURL;
+		}
+
+        property rarity: string {
+			return _RAM.rarity;
+		}
+    }
+
     // librairies import
     import Runtime;
     import Token;
@@ -273,7 +323,7 @@ token GFEST{
         _boxPrice[1] := 1500000000;
         _boxPrice[2] := 4500000000;
         _boxPrice[3] := 25000000000;
-/*
+
         _hammerSupply[0] := 9000;
         _hammerSupply[1] := 3000;
         _hammerSupply[2] := 500;
@@ -282,30 +332,25 @@ token GFEST{
         _ghostSupply[1] := 3000;
         _ghostSupply[2] := 500;
 
-        _commonBoxHammerSupply[0] := 7200;
-        _commonBoxHammerSupply[1] := 1575;
-        _commonBoxHammerSupply[2] := 225;
-
-        _commonBoxGhostSupply[0] := 7200;
-        _commonBoxGhostSupply[1] := 1575;
-        _commonBoxGhostSupply[2] := 225;
-
-        _rareBoxHammerSupply[0] := 525;
-        _rareBoxHammerSupply[1] := 2325;
-        _rareBoxHammerSupply[2] := 150;
-
-        _rareBoxGhostSupply[0] := 525;
-        _rareBoxGhostSupply[1] := 2325;
-        _rareBoxGhostSupply[2] := 150;
-
-        _epicBoxHammerSupply[0] := 10;
-        _epicBoxHammerSupply[1] := 25;
-        _epicBoxHammerSupply[2] := 465;
-
-        _epicBoxGhostSupply[0] := 10;
-        _epicBoxGhostSupply[1] := 25;
-        _epicBoxGhostSupply[2] := 465;
-*/
+        _raritySupplies.add(7200);
+        _raritySupplies.add(1575);
+        _raritySupplies.add(225);
+        _raritySupplies.add(7200);
+        _raritySupplies.add(1575);
+        _raritySupplies.add(225);
+        _raritySupplies.add(525);
+        _raritySupplies.add(2325);
+        _raritySupplies.add(150);
+        _raritySupplies.add(525);
+        _raritySupplies.add(2325);
+        _raritySupplies.add(150);
+        _raritySupplies.add(10);
+        _raritySupplies.add(25);
+        _raritySupplies.add(465);
+        _raritySupplies.add(10);
+        _raritySupplies.add(25);
+        _raritySupplies.add(465);
+/*
         _hammerSupply[0] := 6;
         _hammerSupply[1] := 6;
         _hammerSupply[2] := 3;
@@ -332,14 +377,14 @@ token GFEST{
         _raritySupplies.add(1);
         _raritySupplies.add(1);
         _raritySupplies.add(1);
-
+*/
         _hammerStrPropertyCount := 8;
         _ghostStrPropertyCount := 8;
+        _badgeStrPropertyCount := 4;
 
-        _tempHammerType := 0;
-        _tempGhostType := 0;
-        _tempHammerIndex := 0;
-        _tempGhostIndex := 0;
+        _hammerSeriesShift := 100;
+        _ghostSeriesShift := 200;
+        _badgeSeriesShift := 4;
     }
 
     /// @dev Update the current token contract owner address to another address.
@@ -368,31 +413,70 @@ token GFEST{
     }
 
     public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 1, imageURL);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 2, infoURL);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 3, name);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 4, rarity);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 5, model);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 6, hammerType);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 7, infusedType1);
-        _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 8, infusedType2);
+        if (editionId == 1) {
+            _hammerStrStorageMap.set(1, imageURL);
+            _hammerStrStorageMap.set(2, infoURL);
+            _hammerStrStorageMap.set(3, name);
+            _hammerStrStorageMap.set(4, rarity);
+            _hammerStrStorageMap.set(5, model);
+            _hammerStrStorageMap.set(6, hammerType);
+            _hammerStrStorageMap.set(7, infusedType1);
+            _hammerStrStorageMap.set(8, infusedType2);
+        } else {
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 1, imageURL);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 2, infoURL);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 3, name);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 4, rarity);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 5, model);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 6, hammerType);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 7, infusedType1);
+            _hammerStrStorageMap.set((editionId-1)*_hammerStrPropertyCount + 8, infusedType2);
+        }
 
         _hammerCurSupplyStorageMap.set(editionId, currentSupply);
         _hammerMaxSupplyStorageMap.set(editionId, maxSupply);
     }
 
     public setGhostSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, ghostType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 1, imageURL);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 2, infoURL);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 3, name);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 4, rarity);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 5, model);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 6, ghostType);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 7, infusedType1);
-        _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 8, infusedType2);
-
+        if (editionId == 1) {
+            _ghostStrStorageMap.set(1, imageURL);
+            _ghostStrStorageMap.set(2, infoURL);
+            _ghostStrStorageMap.set(3, name);
+            _ghostStrStorageMap.set(4, rarity);
+            _ghostStrStorageMap.set(5, model);
+            _ghostStrStorageMap.set(6, ghostType);
+            _ghostStrStorageMap.set(7, infusedType1);
+            _ghostStrStorageMap.set(8, infusedType2);
+        } else {
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 1, imageURL);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 2, infoURL);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 3, name);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 4, rarity);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 5, model);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 6, ghostType);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 7, infusedType1);
+            _ghostStrStorageMap.set((editionId-1)*_ghostStrPropertyCount + 8, infusedType2);
+        }
+        
         _ghostCurSupplyStorageMap.set(editionId, currentSupply);
         _ghostMaxSupplyStorageMap.set(editionId, maxSupply);
+    }
+
+    public setBadgeSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, currentSupply: number, maxSupply: number) {
+        if (editionId == 1) {
+            _badgeStrStorageMap.set(1, imageURL);
+            _badgeStrStorageMap.set(2, infoURL);
+            _badgeStrStorageMap.set(3, name);
+            _badgeStrStorageMap.set(4, rarity);
+        } else {
+            _badgeStrStorageMap.set((editionId-1)*_badgeStrPropertyCount + 1, imageURL);
+            _badgeStrStorageMap.set((editionId-1)*_badgeStrPropertyCount + 2, infoURL);
+            _badgeStrStorageMap.set((editionId-1)*_badgeStrPropertyCount + 3, name);
+            _badgeStrStorageMap.set((editionId-1)*_badgeStrPropertyCount + 4, rarity);
+        }
+
+        _badgeCurSupplyStorageMap.set(editionId, currentSupply);
+        _badgeMaxSupplyStorageMap.set(editionId, maxSupply);
     }
 
     public createBoxSeries() {
@@ -414,7 +498,7 @@ token GFEST{
         // create series for hammer
         local index: number := 1;
         while (index <= _hammerEnding.get(3)) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + 100, _hammerMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, hammerNft);
+            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _hammerSeriesShift, _hammerMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, hammerNft);
             index := index + 1;
         }
     }
@@ -426,7 +510,19 @@ token GFEST{
         // create series for ghost
         local index: number := 1;
         while (index <= _ghostEnding.get(3)) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + 200, _ghostMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, ghostNft);
+            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _ghostSeriesShift, _ghostMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, ghostNft);
+            index := index + 1;
+        }
+    }
+
+    public createBadgeSeries() {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        // create series for badge
+        local index: number := 1;
+        while (index <= 3) {
+            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _badgeSeriesShift, _badgeMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, badgeNft);
             index := index + 1;
         }
     }
@@ -521,7 +617,6 @@ token GFEST{
     }
 
     private mintAndInfuse(owner:address, typeOfBox:number, hammerIndex:number, ghostIndex:number) {
-        // series already created in constructor, so just mint and infuse here
         // mint box
         local rom1:box_rom := Struct.box_rom(_royalty);
         local ram1:box_ram := Struct.box_ram("GFEST Box", "GFEST Box", "", "");
@@ -529,13 +624,13 @@ token GFEST{
 
         // mint hammer
         local rom2:hammer_rom := Struct.hammer_rom(_royalty);
-        local ram2:hammer_ram;
+        local ram2:hammer_ram;        
         if (hammerIndex == 1) {
             ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(3), _hammerStrStorageMap.get(3), _hammerStrStorageMap.get(1), _hammerStrStorageMap.get(2), _hammerStrStorageMap.get(4), _hammerStrStorageMap.get(5), _hammerStrStorageMap.get(6), 0, 0, _hammerStrStorageMap.get(7), _hammerStrStorageMap.get(8));
         } else {
             ram2 := Struct.hammer_ram(_hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 3), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 3), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 1), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 2), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 4), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 5), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 6), 0, 0, _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 7), _hammerStrStorageMap.get((hammerIndex - 1) * _hammerStrPropertyCount + 8));
         }
-        local hammerTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom2, ram2, hammerIndex + 100);
+        local hammerTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom2, ram2, hammerIndex + _hammerSeriesShift);
 
         // mint ghost
         local rom3: ghost_rom := Struct.ghost_rom(_royalty);
@@ -545,13 +640,27 @@ token GFEST{
         } else {
             ram3 := Struct.ghost_ram(_ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 3), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 3), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 1), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 2), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 4), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 5), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 6), 0, 0, _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 7), _ghostStrStorageMap.get((ghostIndex - 1) * _ghostStrPropertyCount + 8), false);
         }
-        local ghostTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom3, ram3, ghostIndex + 200);
+        local ghostTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom3, ram3, ghostIndex + _ghostSeriesShift);
+
+        // mint badge
+        local rom4: badge_rom := Struct.badge_rom(_royalty);
+        local ram4: badge_ram;
+
+        if (typeOfBox == 1) {
+            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(3), _badgeStrStorageMap.get(3), _badgeStrStorageMap.get(1), _badgeStrStorageMap.get(2), _badgeStrStorageMap.get(4));
+        } else {
+            ram4 := Struct.badge_ram(_badgeStrStorageMap.get((typeOfBox - 1) * _badgeStrPropertyCount + 3), _badgeStrStorageMap.get((typeOfBox - 1) * _badgeStrPropertyCount + 3), _ghostStrStorageMap.get((typeOfBox - 1) * _badgeStrPropertyCount + 1), _badgeStrStorageMap.get((typeOfBox - 1) * _badgeStrPropertyCount + 2), _badgeStrStorageMap.get((typeOfBox - 1) * _badgeStrPropertyCount + 4));
+        }
+
+        local badgeSeriesID: number := typeOfBox + _badgeSeriesShift;
+        local badgeTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom4, ram4, badgeSeriesID);
 
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, hammerTokenID);
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, ghostTokenID);
+        NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, badgeTokenID);
     }
 
-    public mint(owner:address, typeOfBox:number, numOfBox:number)
+    public mint(owner:address, typeOfBox:number)
     {
         // check is witness and is current owner
         Runtime.expect(Runtime.isWitness(owner), "invalid witness");
@@ -602,11 +711,6 @@ token GFEST{
 
         hammerIndex := this.chooseNftIndex(1, hammerType); // 1 means hammer
         ghostIndex := this.chooseNftIndex(2, ghostType); // 2 means ghost
-
-        _tempHammerType := hammerType;
-        _tempGhostType := ghostType;
-        _tempHammerIndex := hammerIndex;
-        _tempGhostIndex := ghostIndex;
 
         // Process the payment from the user in SOUL
         local thisAddr:address := $THIS_ADDRESS;
@@ -725,28 +829,8 @@ token GFEST{
         NFT.burn(from, symbol, id);
     }
 
-    public getTempTypeAndIndex(): number {
-        return _tempHammerType*1000 + _tempGhostType*100 + _tempHammerIndex*10 + _tempGhostIndex;
-    }
-
-    public getRaritySupplies(index: number) : number {
-        return _raritySupplies.get(index);
-    }
-    
-    public getTempCommonSupply(): number {
-        return _raritySupplies.get(0)*100000 + _raritySupplies.get(1)*10000 + _raritySupplies.get(2)*1000 + _raritySupplies.get(3)*100 + _raritySupplies.get(4)*10 + _raritySupplies.get(5);
-    }
-
-    public getTempRareSupply(): number {
-        return _raritySupplies.get(6)*100000 + _raritySupplies.get(7)*10000 + _raritySupplies.get(8)*1000 + _raritySupplies.get(9)*100 + _raritySupplies.get(10)*10 + _raritySupplies.get(11);
-    }
-
-    public getTempEpicSupply(): number {
-        return _raritySupplies.get(12)*100000 + _raritySupplies.get(13)*10000 + _raritySupplies.get(14)*1000 + _raritySupplies.get(15)*100 + _raritySupplies.get(16)*10 + _raritySupplies.get(17);
-    }
-
-    public getTempSupplies(): number {
-        return _hammerSupply[0]*100000 + _hammerSupply[1]*10000 + _hammerSupply[2]*1000 + _ghostSupply[0]*100 + _ghostSupply[1]*10 + _ghostSupply[2];
+    public getTempBadgeString(index: number): string {
+        return _badgeStrStorageMap.get(index);
     }
 
 	/// @dev onUpgrade trigger.
