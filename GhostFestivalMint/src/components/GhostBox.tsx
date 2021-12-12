@@ -27,7 +27,7 @@ export default function GhostBox({ id, onFound }: Props) {
 
   useEffect(() => {
     if (cntMint <= 0) setCntMint(0);
-    else if (cntMint > 10) setCntMint(10);
+    else if (cntMint > 100) setCntMint(100);
     onFound({ boxId: id, cnt: cntMint });
   }, [cntMint, id, onFound]);
 
