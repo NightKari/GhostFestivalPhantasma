@@ -71,7 +71,7 @@ struct badge_ram
 }
 
 // hamma token contract
-token GFEST{
+token GFNFT{
 
 	global _addressOwner: address;
     global _contractName: string;
@@ -316,7 +316,7 @@ token GFEST{
     constructor(owner:address)
     {
         _addressOwner:= owner;
-        _contractName:= "GFEST NFT";
+        _contractName:= "GFNFT";
 
         _royalty := 3;
 
@@ -594,8 +594,18 @@ token GFEST{
 
     private mintAndInfuse(owner:address, typeOfBox:number, hammerIndex:number, ghostIndex:number) {
         // mint box
-        local rom1:box_rom := Struct.box_rom(_royalty);
-        local ram1:box_ram := Struct.box_ram("GFEST Box", "GFEST Box", "", "");
+        local rom1:box_rom := Struct.box_rom(_royalty);       
+        local ram1:box_ram;
+        if (typeOfBox == 1) {
+            ram1 := Struct.box_ram("GFEST COMMON Crate", "GFEST COMMON Crate", "", "");
+        } else {
+            if (typeOfBox == 2) {
+                ram1 := Struct.box_ram("GFEST RARE Crate", "GFEST RARE Crate", "", "");
+            } else {
+                ram1 := Struct.box_ram("GFEST EPIC Crate", "GFEST EPIC Crate", "", "");
+            }
+        }   
+        
         local boxTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom1, ram1, typeOfBox);
         local temp: number := 0;
 
