@@ -1,10 +1,13 @@
 // const apiUrl = "http://localhost:7080";
-let link = new PhantasmaLink("Ghost Festival Mint");
+let link = new PhantasmaLink("FESTG");
 
 function login() {
   link.login(function (success) {
     if (success) {
-      console.log(link);
+      let myAddress = link.account.address;
+      document.getElementById("connectBtn").innerText = myAddress.substring(0,5) + "..." + myAddress.substring(43);
+    } else {
+      alert("Failed to connect Phantasma wallet");
     }
   });
 }
@@ -31,15 +34,15 @@ function TestPhantasma() {
     .callContract('gas', 'AllowGas', [myAddress, sb.nullAddress(), gasPrice, gaslimit])
 
     for(let i = 0; i < myGhostFestival[0]; i++) {
-      script = script.callContract("GFEST", "mint", [myAddress, 1]);
+      script = script.callContract("FESTG", "mint", [myAddress, 1]);
     }
 
     for(let i = 0; i < myGhostFestival[1]; i++) {
-      script = script.callContract("GFEST", "mint", [myAddress, 2]);
+      script = script.callContract("FESTG", "mint", [myAddress, 2]);
     }
 
     for(let i = 0; i < myGhostFestival[2]; i++) {
-      script = script.callContract("GFEST", "mint", [myAddress, 3]);
+      script = script.callContract("FESTG", "mint", [myAddress, 3]);
     }
 
     script = script.callContract('gas', 'SpendGas', [myAddress])
