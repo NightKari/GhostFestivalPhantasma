@@ -114,6 +114,17 @@ token GFNFT{
     global _ghostSeriesShift: number;
     global _badgeSeriesShift: number;
 
+    global _hammerTokenIDStorageMap: storage_map<number, number>;
+    global _ghostTokenIDStorageMap: storage_map<number, number>;
+    global _badgeTokenIDStorageMap: storage_map<number, number>;
+    global _boxTokenIDStorageMap: storage_map<number, number>;
+
+    global _boxIdToHammerIndex: storage_map<number, number>;
+    global _boxIdToGhostIndex: storage_map<number, number>;
+    global _boxIdToBadgeIndex: storage_map<number, number>;
+
+    global _burnMap: storage_map<number, bool>;
+
     // token name
     property name: string = "Ghost Festival";
     // token version
@@ -385,6 +396,34 @@ token GFNFT{
         _ghostEnding.set(index, ghostEnding);
     }
 
+    public setHammerTokenIDSource(editionId: number, tokenID: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _hammerTokenIDStorageMap.set(editionId, tokenID);
+    }
+
+    public setGhostTokenIDSource(editionId: number, tokenID: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _ghostTokenIDStorageMap.set(editionId, tokenID);
+    }
+
+    public setBadgeTokenIDSource(editionId: number, tokenID: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _badgeTokenIDStorageMap.set(editionId, tokenID);
+    }
+
+    public setBoxTokenIDSource(editionId: number, tokenID: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _boxTokenIDStorageMap.set(editionId, tokenID);
+    }
+
     public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
         if (editionId == 1) {
             _hammerStrStorageMap.set(1, imageURL);
@@ -597,57 +636,43 @@ token GFNFT{
         local rom1:box_rom := Struct.box_rom(_royalty);       
         local ram1:box_ram;
         if (typeOfBox == 1) {
-            ram1 := Struct.box_ram("GFEST COMMON Crate", "GFEST COMMON Crate", "", "");
+            ram1 := Struct.box_ram("Common Crate", "Common Crate", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/Crate_1.mp4", "ipfs://QmcXCb913p3di5qj6sERNb69MJHHYmC614PZjg7ERSEq3c/" + _boxTokenIDStorageMap.get(typeOfBox));
         } else {
             if (typeOfBox == 2) {
-                ram1 := Struct.box_ram("GFEST RARE Crate", "GFEST RARE Crate", "", "");
+                ram1 := Struct.box_ram("Rare Crate", "Rare Crate", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/Crate_2.mp4", "ipfs://QmcXCb913p3di5qj6sERNb69MJHHYmC614PZjg7ERSEq3c/" + _boxTokenIDStorageMap.get(typeOfBox));
             } else {
-                ram1 := Struct.box_ram("GFEST EPIC Crate", "GFEST EPIC Crate", "", "");
+                ram1 := Struct.box_ram("Epic Crate", "Epic Crate", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/Crate_3.mp4", "ipfs://QmcXCb913p3di5qj6sERNb69MJHHYmC614PZjg7ERSEq3c/" + _boxTokenIDStorageMap.get(typeOfBox));
             }
-        }   
-        
+        }
+
         local boxTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom1, ram1, typeOfBox);
-        local temp: number := 0;
 
-        // mint hammer
-        local rom2:hammer_rom := Struct.hammer_rom(_royalty);
-        local ram2:hammer_ram;        
-        if (hammerIndex == 1) {
-            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(3), _hammerStrStorageMap.get(3), _hammerStrStorageMap.get(1), _hammerStrStorageMap.get(2), _hammerStrStorageMap.get(4), _hammerStrStorageMap.get(5), _hammerStrStorageMap.get(6), 0, 0, _hammerStrStorageMap.get(7), _hammerStrStorageMap.get(8));
-        } else {
-            temp := (hammerIndex - 1) * _hammerStrPropertyCount;
-            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp + 1), _hammerStrStorageMap.get(temp + 2), _hammerStrStorageMap.get(temp + 4), _hammerStrStorageMap.get(temp + 5), _hammerStrStorageMap.get(temp + 6), 0, 0, _hammerStrStorageMap.get(temp + 7), _hammerStrStorageMap.get(temp + 8));
-        }
-        local hammerTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom2, ram2, hammerIndex + _hammerSeriesShift);
-
-        // mint ghost
-        local rom3: ghost_rom := Struct.ghost_rom(_royalty);
-        local ram3: ghost_ram;
-        if (ghostIndex == 1) {
-            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(3), _ghostStrStorageMap.get(3), _ghostStrStorageMap.get(1), _ghostStrStorageMap.get(2), _ghostStrStorageMap.get(4), _ghostStrStorageMap.get(5), _ghostStrStorageMap.get(6), 0, 0, _ghostStrStorageMap.get(7), _ghostStrStorageMap.get(8), false);
-        } else {
-            temp := (ghostIndex - 1) * _ghostStrPropertyCount;
-            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), _ghostStrStorageMap.get(temp + 2), _ghostStrStorageMap.get(temp + 4), _ghostStrStorageMap.get(temp + 5), _ghostStrStorageMap.get(temp + 6), 0, 0, _ghostStrStorageMap.get(temp + 7), _ghostStrStorageMap.get(temp + 8), false);
-        }
-        local ghostTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom3, ram3, ghostIndex + _ghostSeriesShift);
-
-        // mint badge
-        local rom4: badge_rom := Struct.badge_rom(_royalty);
-        local ram4: badge_ram;
-
-        if (typeOfBox == 1) {
-            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(3), _badgeStrStorageMap.get(3), _badgeStrStorageMap.get(1), _badgeStrStorageMap.get(2), _badgeStrStorageMap.get(4));
-        } else {
-            temp := (typeOfBox - 1) * _badgeStrPropertyCount;
-            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(temp+3), _badgeStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), _badgeStrStorageMap.get(temp + 2), _badgeStrStorageMap.get(temp + 4));
-        }
-
-        local badgeSeriesID: number := typeOfBox + _badgeSeriesShift;
-        local badgeTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom4, ram4, badgeSeriesID);
-
+        _boxIdToHammerIndex.set(boxTokenID, hammerIndex);
+        _boxIdToGhostIndex.set(boxTokenID, ghostIndex);
+        _boxIdToBadgeIndex.set(boxTokenID, typeOfBox);
+    
+/*
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, hammerTokenID);
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, ghostTokenID);
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, badgeTokenID);
+*/  
+    }
+
+    private increaseTokenID(typeOfBox: number, hammerIndex: number, ghostIndex: number) {
+        local boxTokenID :number := _boxTokenIDStorageMap.get(typeOfBox);
+        local hammerTokenID :number := _hammerTokenIDStorageMap.get(hammerIndex);
+        local ghostTokenID :number := _ghostTokenIDStorageMap.get(ghostIndex);
+        local badgeTokenID :number := _badgeTokenIDStorageMap.get(typeOfBox);
+        
+        boxTokenID := boxTokenID + 1;
+        hammerTokenID := hammerTokenID + 1;
+        ghostTokenID := ghostTokenID + 1;
+        badgeTokenID := badgeTokenID + 1;
+
+        _boxTokenIDStorageMap.set(typeOfBox, boxTokenID);
+        _hammerTokenIDStorageMap.set(hammerIndex, hammerTokenID);
+        _ghostTokenIDStorageMap.set(ghostIndex, ghostTokenID);
+        _badgeTokenIDStorageMap.set(typeOfBox, badgeTokenID);
     }
 
     public mint(owner:address, typeOfBox:number)
@@ -707,6 +732,8 @@ token GFNFT{
 
         // mint Box, hammer and ghost, then infuse hammer and ghost into a box
         this.mintAndInfuse(owner, typeOfBox, hammerIndex, ghostIndex);
+
+        this.increaseTokenID(typeOfBox, hammerIndex, ghostIndex);
 
         // currentSupply of _hammerStorageMap and _ghostStorageMap at hammerIndex and ghostIndex should be decreased
         this.decreaseSupplyAtIndex(1, hammerIndex);
@@ -814,8 +841,81 @@ token GFNFT{
         _ghostSupply[ghostType] := _ghostSupply[ghostType] - 1;
     }
 
-    public burn(from:address, symbol:string, id:number) {
-        NFT.burn(from, symbol, id);
+    public burnOnMarket(from:address, symbol:string, tokenID:number) {
+        NFT.burn(from, symbol, tokenID);
+    }
+
+    public burnOnWebsite(from:address, symbol:string, tokenID:number) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+        
+        _burnMap.set(tokenID, true);
+        NFT.burn(from, symbol, tokenID);
+
+        local hammerIndex: number := _boxIdToHammerIndex.get(tokenID);
+        local ghostIndex: number := _boxIdToGhostIndex.get(tokenID);
+        local badgeIndex: number := _boxIdToBadgeIndex.get(tokenID);
+
+        _boxIdToHammerIndex.remove(hammerIndex);
+        _boxIdToGhostIndex.remove(ghostIndex);
+        _boxIdToBadgeIndex.remove(badgeIndex);
+
+        if (hammerIndex <= 0) {
+            return;
+        }
+        if (ghostIndex <= 0) {
+            return;
+        }
+        if (badgeIndex <= 0) {
+            return;
+        }
+
+        if (symbol != $THIS_SYMBOL) {
+            return;
+        }
+
+        local temp: number := 0;
+
+        // mint hammer
+        local rom2:hammer_rom := Struct.hammer_rom(_royalty);
+        local ram2:hammer_ram;        
+        if (hammerIndex == 1) {
+            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(3), _hammerStrStorageMap.get(3), _hammerStrStorageMap.get(1), "ipfs://QmXDzzeVMbkyD9mft6uLDFJ8qsmixAuG1ToDvNokJUtLpL/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(4), _hammerStrStorageMap.get(5), _hammerStrStorageMap.get(6), 0, 0, _hammerStrStorageMap.get(7), _hammerStrStorageMap.get(8));
+        } else {
+            temp := (hammerIndex - 1) * _hammerStrPropertyCount;
+            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp + 1), "ipfs://QmXDzzeVMbkyD9mft6uLDFJ8qsmixAuG1ToDvNokJUtLpL/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(temp + 4), _hammerStrStorageMap.get(temp + 5), _hammerStrStorageMap.get(temp + 6), 0, 0, _hammerStrStorageMap.get(temp + 7), _hammerStrStorageMap.get(temp + 8));
+        }
+        local hammerTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom2, ram2, hammerIndex + _hammerSeriesShift);
+
+        // mint ghost
+        local rom3: ghost_rom := Struct.ghost_rom(_royalty);
+        local ram3: ghost_ram;
+        if (ghostIndex == 1) {
+            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(3), _ghostStrStorageMap.get(3), _ghostStrStorageMap.get(1), "ipfs://QmY9HS4MHGMQY1z6Zb5FT8mT4QtkYKoSVKiL1Rxm4ah11P/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(4), _ghostStrStorageMap.get(5), _ghostStrStorageMap.get(6), 0, 0, _ghostStrStorageMap.get(7), _ghostStrStorageMap.get(8), false);
+        } else {
+            temp := (ghostIndex - 1) * _ghostStrPropertyCount;
+            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), "ipfs://QmY9HS4MHGMQY1z6Zb5FT8mT4QtkYKoSVKiL1Rxm4ah11P/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(temp + 4), _ghostStrStorageMap.get(temp + 5), _ghostStrStorageMap.get(temp + 6), 0, 0, _ghostStrStorageMap.get(temp + 7), _ghostStrStorageMap.get(temp + 8), false);
+        }
+        local ghostTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, ghostIndex + _ghostSeriesShift);
+
+        // mint badge
+        local rom4: badge_rom := Struct.badge_rom(_royalty);
+        local ram4: badge_ram;
+
+        if (badgeIndex == 1) {
+            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(3), _badgeStrStorageMap.get(3), _badgeStrStorageMap.get(1), "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), _badgeStrStorageMap.get(4));
+        } else {
+            temp := (badgeIndex - 1) * _badgeStrPropertyCount;
+            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(temp+3), _badgeStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), _badgeStrStorageMap.get(temp + 4));
+        }
+
+        local badgeSeriesID: number := badgeIndex + _badgeSeriesShift;
+        local badgeTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom4, ram4, badgeSeriesID);
+    }
+
+    trigger onBurn(from:address, to:address, symbol:string, tokenID:number) {
+        local isValidBurn: bool := _burnMap.get(tokenID);
+        Runtime.expect(isValidBurn == true, "Please try to burn on the Ghost Festival website");
     }
 
 	/// @dev onUpgrade trigger.
