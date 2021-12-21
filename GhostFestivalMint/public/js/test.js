@@ -1,148 +1,261 @@
-// const apiUrl = "http://localhost:7080";
-let link = new PhantasmaLink("Ghost Festival Mint");
+// const NFTSymbol = "GFNFT";
+// const apiUrl = "http://localhost:7078";
+const NFTSymbol = "GNFT";
+const apiUrl = "http://testnet.phantasma.io:7078";
+const link = new PhantasmaLink(NFTSymbol);
+
+function httpGet(theUrl) {
+  var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open("GET", theUrl, false); // false for synchronous request
+  xmlHttp.send(null);
+  return xmlHttp.responseText;
+}
+
+function fetchBoxBalance(myAddress) {
+  $.getJSON(apiUrl + "/api/getAccount?account=" + myAddress, function (res) {
+    console.log(res);
+    if (!res) {
+      alert("Cannot connect to the api server");
+      console.log("error 1");
+    } else if (res.error && res.error !== "pending") {
+      alert("Cannot connect to the api server");
+      console.log("error 2");
+    } else {
+      const balances = res.balances;
+      let commonBoxNftIDs = [];
+      let rareBoxNftIDs = [];
+      let epicBoxNftIDs = [];
+      for (let i = 0; i < balances.length; i++) {
+        if (balances[i].symbol == NFTSymbol) {
+          nftIDs = balances[i].ids;
+          for (let j = 0; j < nftIDs.length; j++) {
+            let nthNft = httpGet(
+              apiUrl +
+                "/api/getNFTs?account=" +
+                myAddress +
+                "&symbol=" +
+                NFTSymbol +
+                "&IDText=" +
+                nftIDs[j]
+            );
+            nthNft = JSON.parse(nthNft);
+            const series = nthNft[0].series;
+            if (parseInt(series) == 1)
+              commonBoxNftIDs.push(nftIDs[j].toString());
+            else if (parseInt(series) == 2)
+              rareBoxNftIDs.push(nftIDs[j].toString());
+            else if (parseInt(series) == 3)
+              epicBoxNftIDs.push(nftIDs[j].toString());
+            // if (
+            //   parseInt(series) == 1 ||
+            //   parseInt(series) == 2 ||
+            //   parseInt(series) == 3
+            // ) {
+            //   boxNftIDs.push(nftIDs[j].toString());
+            // }
+          }
+
+          console.log("**", commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs);
+          reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs);
+        }
+      }
+    }
+  });
+}
+
+function formatWalletAddress(myAddress) {
+  document.getElementById("connectBtn").innerText =
+    myAddress.substring(0, 5) + "..." + myAddress.substring(43);
+}
+
+function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
+  let numOfCrates =
+    commonBoxNftIDs.length + rareBoxNftIDs.length + epicBoxNftIDs.length;
+  let fakeNumOfCrates =
+    numOfCrates % 3 == 0
+      ? numOfCrates
+      : (numOfCrates + 1) % 3 == 0
+      ? numOfCrates + 1
+      : numOfCrates + 2;
+  let strAreas = "";
+  for (let i = 1; i <= fakeNumOfCrates; i++) {
+    if ((i - 1) % 3 == 0) {
+      strAreas += '"Area-' + i + " ";
+    } else if (i % 3 == 0) {
+      strAreas += "Area-" + i + '" ';
+    } else {
+      strAreas += "Area-" + i + " ";
+    }
+  }
+  if (fakeNumOfCrates % 3 != 0) strAreas += '"';
+
+  document.getElementById("crate-grid").innerHTML = "";
+  document.getElementById("crate-grid").style.gridTemplateAreas = strAreas;
+
+  // for common box
+  for (let i = 1; i <= commonBoxNftIDs.length; i++) {
+    document.getElementById("crate-grid").innerHTML +=
+      '<div class="div-block-open area' +
+      (numOfCrates == 1 ? 2 : i) +
+      '">' +
+      '<div class="columns-9 w-row">' +
+      '<div class="column-19 w-col w-col-10">' +
+      '<video width="540" autoplay loop><source src="/assets/crate1.mp4" type="video/mp4"></video>' +
+      "</div>" +
+      '<div class="column-20 w-col w-col-2">' +
+      '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
+      "boxID" +
+      commonBoxNftIDs[i - 1] +
+      '`)">OPEN</a>' +
+      "</div>" +
+      "</div>" +
+      "</div>";
+  }
+
+  // for rare box
+  for (let i = 1; i <= rareBoxNftIDs.length; i++) {
+    document.getElementById("crate-grid").innerHTML +=
+      '<div class="div-block-open area' +
+      (numOfCrates == 1 ? 2 : i + commonBoxNftIDs.length) +
+      '">' +
+      '<div class="columns-9 w-row">' +
+      '<div class="column-19 w-col w-col-10">' +
+      '<video width="540" autoplay loop><source src="/assets/crate2.mp4" type="video/mp4"></video>' +
+      "</div>" +
+      '<div class="column-20 w-col w-col-2">' +
+      '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
+      "boxID" +
+      rareBoxNftIDs[i - 1] +
+      '`)">OPEN</a>' +
+      "</div>" +
+      "</div>" +
+      "</div>";
+  }
+
+  // for epic box
+  for (let i = 1; i <= epicBoxNftIDs.length; i++) {
+    document.getElementById("crate-grid").innerHTML +=
+      '<div class="div-block-open area' +
+      (numOfCrates == 1
+        ? 2
+        : i + commonBoxNftIDs.length + rareBoxNftIDs.length) +
+      '">' +
+      '<div class="columns-9 w-row">' +
+      '<div class="column-19 w-col w-col-10">' +
+      '<video width="540" autoplay loop><source src="/assets/crate3.mp4" type="video/mp4"></video>' +
+      "</div>" +
+      '<div class="column-20 w-col w-col-2">' +
+      '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
+      "boxID" +
+      epicBoxNftIDs[i - 1] +
+      '`)">OPEN</a>' +
+      "</div>" +
+      "</div>" +
+      "</div>";
+  }
+}
 
 function login() {
   link.login(function (success) {
     if (success) {
-      console.log(link);
+      const myAddress = link.account.address;
+      formatWalletAddress(myAddress);
+      fetchBoxBalance(myAddress);
+    } else {
+      alert("Failed to connect Phantasma wallet");
     }
   });
 }
 
-function TestPhantasma() {
-  let myGhostFestival = JSON.parse(localStorage.getItem("GhostFestival"));
+function PurchaseBox() {
+  const myGhostFestival = JSON.parse(localStorage.getItem("GhostFestival"));
   console.log("myGhostFestival", myGhostFestival);
-  // let myAddress = "P2K8uxLqAxA5Szi3K9xoa6rUaouPRRqj9YyAt1CMrfSKt76"; //public addr of dummy wallet genesis, guid
-  let myAddress = link.account.address; //public addr of dummy wallet genesis, guid
+  if (!link.account) {
+    alert("Please connect your wallet first");
+    return;
+  }
+  const myAddress = link.account.address; //public addr of dummy wallet genesis, guid
 
-  let minimumFee = "100000";
-  let gaslimit = "100000";
+  const gasPrice = 1000000;
+  const gaslimit = 10000000;
+
+  if (
+    myGhostFestival[0] == 0 &&
+    myGhostFestival[1] == 0 &&
+    myGhostFestival[2] == 0
+  ) {
+    alert("Please choose at least one crate");
+    return;
+  }
+
+  const sb = new ScriptBuilder();
+  let script = sb.callContract("gas", "AllowGas", [
+    myAddress,
+    sb.nullAddress(),
+    gasPrice,
+    gaslimit,
+  ]);
+
+  for (let i = 0; i < myGhostFestival[0]; i++) {
+    script = script.callContract(NFTSymbol, "mint", [myAddress, 1]);
+  }
+
+  for (let i = 0; i < myGhostFestival[1]; i++) {
+    script = script.callContract(NFTSymbol, "mint", [myAddress, 2]);
+  }
+
+  for (let i = 0; i < myGhostFestival[2]; i++) {
+    script = script.callContract(NFTSymbol, "mint", [myAddress, 3]);
+  }
+
+  script = script.callContract("gas", "SpendGas", [myAddress]).endScript();
+
+  link.sendTransaction("main", script, "festival1.0", function (result) {
+    console.log("========", result);
+    if (!result.success) {
+      alert(
+        "Failed to mint " +
+          (myGhostFestival[0] + myGhostFestival[1] + myGhostFestival[2]) +
+          " Crate(s)"
+      );
+    } else {
+      alert(
+        "Successfully minted " +
+          (myGhostFestival[0] + myGhostFestival[1] + myGhostFestival[2]) +
+          " Crate(s)"
+      );
+      fetchBoxBalance(myAddress);
+    }
+  });
+}
+
+function burnOnWebsite(boxNFTID) {
+  const myAddress = link.account.address;
+  boxNFTID = boxNFTID.substring(5);
+  console.log(boxNFTID);
+
+  let gasPrice = 100000;
+  let gaslimit = 100000;
 
   let sb = new ScriptBuilder();
-
   let script = sb
-    .callContract("gas", "allowgas", [
+    .callContract("gas", "AllowGas", [
       myAddress,
       sb.nullAddress(),
-      minimumFee,
+      gasPrice,
       gaslimit,
     ])
-    .callContract("GFEST", "mintGhost", [
-      0,
-      25,
-      myAddress,
-      "GFEST",
-      1,
-      2,
-      "Shadow",
-      "Shadow black ghost",
-      "http://amazumedia.com/GhostFestival/img/Ghosts/ghost_shadow_black.mp4",
-      "info URL is:",
-      "Black",
-      "OG",
-      0,
-      0,
-      "None",
-      "None",
-      false,
-      "None",
-    ])
-
-    //mintGhost(editionId:number, editionMax:number, creator:address, mintTicker:string, numOfNfts:number,
-    //royalties: number, name: string, description: string, imageURL: string, infoURL: string,
-    //    model: string, ghostType: string, level: number, health: number,
-    //        infusedType1: string, infusedType2: string, unboxed: bool, gender: string)
-    //
-
-    //Amazu Database Link: https://docs.google.com/spreadsheets/d/1sgk_jjGPukoZv_fIeM6xeXQ83gAOPBEKXi-sCD9ceLY/edit#gid=529186089
-    //
-    //.callContract('GFEST', 'mintHammer', [1, 25, 1, myAddress, 'mint ticker??', 10,
-    //'hammer_wood', 'the most basic wooden hammer', 'http://amazumedia.com/GhostFestival/img/Hammers/hammer_wooden_1.mp4', 'info URL is:', '', 1, 100, false])
-
-    //     .callContract('gas', 'SpendGas', [linkAddress])
+    .callContract(NFTSymbol, "burnOnWebsite", [myAddress, NFTSymbol, boxNFTID])
     .callContract("gas", "SpendGas", [myAddress])
     .endScript();
 
-  let apiUrl = "http://localhost:7080";
-
   link.sendTransaction("main", script, "festival1.0", function (result) {
-    console.log(result);
-
-    if (result.success) {
-      alert("succes");
+    console.log("========", result);
+    if (!result.success) {
+      alert("Failed to burn");
     } else {
-      alert("failed");
+      alert("Successfully burned. See the NFTs on Ghost Market");
+      fetchBoxBalance(myAddress);
     }
   });
 }
-
-////mintToken(editionId:number, editionMax:number, editionMode:number, creator:address, mintTicker:string, numOfNfts:number,
-////name: string, description: string, imageURL: string, infoURL: string, itemType: string, level: number, prower: number, hasLocked: bool)
-
-//script.callContract('HAMME', 'mintToken', [1, 25, 1, myAddress, 'mint ticker??', 10,
-//    'hammer_wood', 'the most basic wooden hammer', 'http://amazumedia.com/GhostFestival/img/wooden_regular_hammer.PNG', 'info URL is:', '', 1, 100, false]);
-
-////script.callcontract('stake', 'masterclaim', [myaddress]);
-//script.callContract('gas', 'SpendGas', [myAddress]);
-
-//}
-
-//function testContract() {
-
-//    const gasPrice = 100000;
-//    const minGasLimit = 100000;
-//    const myAddress = 'P2K8uxLqAxA5Szi3K9xoa6rUaouPRRqj9YyAt1CMrfSKt76'  //public address of wallet
-//    const claimAddress = 'S3dNRtA9m8GqzYAcZF2EMbEfJAjL4EfuNupJfogeuhLtU3v'//contract address
-//    const amountToStake = 50000 * 10 ** 8;
-
-//    sb = new ScriptBuilder();
-
-//    script = sb.callContract('gas', 'AllowGas', [myAddress, sb.nullAddress(), gasPrice, minGasLimit])
-
-//        //stake
-//        .callContract('stake', 'Stake', [
-//            claimAddress,
-//            amountToStake
-//        ])
-//        // call mint Ghost:
-//        .callContract('GFEST', 'mintGhost', [0, 2500, myAddress, 'GFEST', 1,
-//            2, 'Shadow', 'Shadow black ghost',
-//            'http://amazumedia.com/GhostFestival/img/Ghosts/ghost_shadow_black.mp4', 'info URL is:',
-//            'Black', 'OG', 0, 0, 'None', 'None', false, 'None',
-//        ])
-
-//        .callContract('gas', 'SpendGas', [myAddress])
-//        .endScript();
-
-//  link.signTx(script, null, function (result) {
-//console.log('result signTx', result)
-
-//if (result.error || result.hash.error) {
-//    var error = result.error ? result.error : result.hash.error;
-//    console.log(error)
-//    bootbox.alert('Error: ' + error);
-//}
-//else if (result.success) {
-//    var hash = result.hash;
-
-//    setTimeout(function () {
-//        $.getJSON(apiUrl + '/api/getTransaction?hashText=' + hash,
-//            function (res) {
-//                console.log(res)
-//                if (
-//                    res &&
-//                    res.error &&
-//                    res.error !== 'pending'
-//                ) {
-//                    console.log(res.error)
-//                    bootbox.alert('error: ' + res.error);
-//                } else {
-//                    console.log('tx successful: ', (res.hash).substring(0, 10))
-//                    bootbox.alert('Purchase success - tx hash: ' + (res.hash).substring(0, 10));
-//                }
-//            })
-//    }, 2000);
-//}
-
-//    })
-//}
