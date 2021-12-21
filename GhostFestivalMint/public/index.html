@@ -68,7 +68,7 @@
     <script src="js/test.js" type="text/javascript"></script>
     <script src="js/webflow.js" type="text/javascript"></script>
     <div class="body">
-      <div class="section wf-section">
+      <div class="section">
         <div class="container-5 w-container">
           <div class="columns-4 w-row">
             <div class="column-2 w-col w-col-4">
@@ -90,12 +90,19 @@
           </div>
         </div>
       </div>
-      <header id="hero" class="hero wf-section">
+      <header id="hero" class="hero">
         <div id="root"></div>
         <div class="container-7 w-container">
-          <button id="purchase" class="button-7 w-button" onclick="TestPhantasma()">
+          <button id="purchase" class="button-7 w-button" onclick="PurchaseBox()">
             PURCHASE
           </button>
+        </div>
+        <div class="section-3 wf-section">
+          <div class="w-container">
+            <h1 class="heading-10">Your Crates</h1>
+            <div id="crate-grid" class="w-layout-grid grid-3">
+            </div>
+          </div>
         </div>
       </header>
     </div>
