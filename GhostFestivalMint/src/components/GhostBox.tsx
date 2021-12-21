@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Box, Button, Text, Center } from "@chakra-ui/react";
+import { getCurrnetSupplies } from "../services/api";
 
 type Props = {
   id: number;
@@ -10,9 +11,10 @@ export default function GhostBox({ id, onFound }: Props) {
   const maxSupply = [9000, 3000, 500];
   const priceCrate = [15, 45, 250];
 
-  const countMinted = 0;
+  // const countMinted = 0;
   const crateName = ["Common", "Rare", "Epic"];
   const [cntMint, setCntMint] = useState(0);
+  const [currentSupply, setCurrentSupply] = useState<number[]>([0, 0, 0]);
   const [mpSrc, getMpSrc] = useState("");
 
   const getSrc = () => {
@@ -20,6 +22,26 @@ export default function GhostBox({ id, onFound }: Props) {
     mvSrc = mvSrc.concat((id + 1).toString()).concat(".mp4");
     getMpSrc(mvSrc);
   };
+
+  const updateCurrentSupplies = async () => {
+    const currentSupplies = await getCurrnetSupplies();
+    setCurrentSupply([
+      currentSupplies.series1,
+      currentSupplies.series2,
+      currentSupplies.series3,
+    ]);
+  };
+
+  useEffect(() => {
+    updateCurrentSupplies();
+    const intervalId = setInterval(() => {
+      try {
+        updateCurrentSupplies();
+      } catch (e) {}
+    }, 10000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     getSrc();
@@ -53,7 +75,7 @@ export default function GhostBox({ id, onFound }: Props) {
             muted
           />
           <Text className="paragraph">
-            {countMinted}/{maxSupply[id]}
+            {currentSupply[id]}/{maxSupply[id]}
           </Text>
         </Box>
         <Box className="div-block-2">
