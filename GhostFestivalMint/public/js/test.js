@@ -1,7 +1,9 @@
-// const NFTSymbol = "GFNFT";
-// const apiUrl = "http://localhost:7078";
-const NFTSymbol = "GNFT";
-const apiUrl = "http://testnet.phantasma.io:7078";
+const NFTSymbol = "GFNFT";
+const apiUrl = "http://localhost:7078";
+// const NFTSymbol = "GNFT";
+// const apiUrl = "http://testnet.phantasma.io:7078";
+// const apiUrl = "http://207.148.17.86:7078";
+// const apiUrl = "https://seed.ghostdevs.com:7078";
 const link = new PhantasmaLink(NFTSymbol);
 
 function httpGet(theUrl) {
@@ -22,9 +24,9 @@ function fetchBoxBalance(myAddress) {
       console.log("error 2");
     } else {
       const balances = res.balances;
-      let commonBoxNftIDs = [];
-      let rareBoxNftIDs = [];
-      let epicBoxNftIDs = [];
+      let commonBoxes = [];
+      let rareBoxes = [];
+      let epicBoxes = [];
       for (let i = 0; i < balances.length; i++) {
         if (balances[i].symbol == NFTSymbol) {
           nftIDs = balances[i].ids;
@@ -39,24 +41,19 @@ function fetchBoxBalance(myAddress) {
                 nftIDs[j]
             );
             nthNft = JSON.parse(nthNft);
+            console.log("====1", nthNft);
             const series = nthNft[0].series;
-            if (parseInt(series) == 1)
-              commonBoxNftIDs.push(nftIDs[j].toString());
-            else if (parseInt(series) == 2)
-              rareBoxNftIDs.push(nftIDs[j].toString());
-            else if (parseInt(series) == 3)
-              epicBoxNftIDs.push(nftIDs[j].toString());
-            // if (
-            //   parseInt(series) == 1 ||
-            //   parseInt(series) == 2 ||
-            //   parseInt(series) == 3
-            // ) {
-            //   boxNftIDs.push(nftIDs[j].toString());
-            // }
+            const tokenId = decodeVMObject(nthNft[0].ram)
+              .infoURL.split("//")[1]
+              .split("/")[1];
+            const nftObj = { nftId: nftIDs[j].toString(), tokenId: tokenId };
+            if (parseInt(series) == 1) commonBoxes.push(nftObj);
+            else if (parseInt(series) == 2) rareBoxes.push(nftObj);
+            else if (parseInt(series) == 3) epicBoxes.push(nftObj);
           }
 
-          console.log("**", commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs);
-          reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs);
+          console.log("**", commonBoxes, rareBoxes, epicBoxes);
+          reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes);
         }
       }
     }
@@ -68,9 +65,8 @@ function formatWalletAddress(myAddress) {
     myAddress.substring(0, 5) + "..." + myAddress.substring(43);
 }
 
-function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
-  let numOfCrates =
-    commonBoxNftIDs.length + rareBoxNftIDs.length + epicBoxNftIDs.length;
+function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
+  let numOfCrates = commonBoxes.length + rareBoxes.length + epicBoxes.length;
   let fakeNumOfCrates =
     numOfCrates % 3 == 0
       ? numOfCrates
@@ -93,7 +89,7 @@ function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
   document.getElementById("crate-grid").style.gridTemplateAreas = strAreas;
 
   // for common box
-  for (let i = 1; i <= commonBoxNftIDs.length; i++) {
+  for (let i = 1; i <= commonBoxes.length; i++) {
     document.getElementById("crate-grid").innerHTML +=
       '<div class="div-block-open area' +
       (numOfCrates == 1 ? 2 : i) +
@@ -105,18 +101,22 @@ function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
-      commonBoxNftIDs[i - 1] +
-      '`)">OPEN</a>' +
+      commonBoxes[i - 1].nftId +
+      '`)">OPEN' +
+      '<span class="tokenId"> #' +
+      commonBoxes[i - 1].tokenId +
+      "</span>" +
+      "</a>" +
       "</div>" +
       "</div>" +
       "</div>";
   }
 
   // for rare box
-  for (let i = 1; i <= rareBoxNftIDs.length; i++) {
+  for (let i = 1; i <= rareBoxes.length; i++) {
     document.getElementById("crate-grid").innerHTML +=
       '<div class="div-block-open area' +
-      (numOfCrates == 1 ? 2 : i + commonBoxNftIDs.length) +
+      (numOfCrates == 1 ? 2 : i + commonBoxes.length) +
       '">' +
       '<div class="columns-9 w-row">' +
       '<div class="column-19 w-col w-col-10">' +
@@ -125,20 +125,21 @@ function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
-      rareBoxNftIDs[i - 1] +
-      '`)">OPEN</a>' +
+      rareBoxes[i - 1] +
+      '`)">OPEN' +
+      '<span class="tokenId"> #' +
+      rareBoxes[i - 1].tokenId +
+      "</a>" +
       "</div>" +
       "</div>" +
       "</div>";
   }
 
   // for epic box
-  for (let i = 1; i <= epicBoxNftIDs.length; i++) {
+  for (let i = 1; i <= epicBoxes.length; i++) {
     document.getElementById("crate-grid").innerHTML +=
       '<div class="div-block-open area' +
-      (numOfCrates == 1
-        ? 2
-        : i + commonBoxNftIDs.length + rareBoxNftIDs.length) +
+      (numOfCrates == 1 ? 2 : i + commonBoxes.length + rareBoxes.length) +
       '">' +
       '<div class="columns-9 w-row">' +
       '<div class="column-19 w-col w-col-10">' +
@@ -147,8 +148,11 @@ function reloadBoxGrid(commonBoxNftIDs, rareBoxNftIDs, epicBoxNftIDs) {
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
-      epicBoxNftIDs[i - 1] +
-      '`)">OPEN</a>' +
+      epicBoxes[i - 1] +
+      '`)">OPEN' +
+      '<span class="tokenId"> #' +
+      epicBoxes[i - 1].tokenId +
+      "</a>" +
       "</div>" +
       "</div>" +
       "</div>";
@@ -167,6 +171,25 @@ function login() {
   });
 }
 
+function loginToPhantasma(providerHint) {
+  link.login(
+    function (success) {
+      modal.style.display = "none";
+      if (success) {
+        console.log("Logged in");
+        const myAddress = link.account.address;
+        formatWalletAddress(myAddress);
+        fetchBoxBalance(myAddress);
+      } else {
+        alert("Failed to connect Phantasma wallet");
+      }
+    },
+    2,
+    "phantasma",
+    providerHint
+  );
+}
+
 function PurchaseBox() {
   const myGhostFestival = JSON.parse(localStorage.getItem("GhostFestival"));
   console.log("myGhostFestival", myGhostFestival);
@@ -176,15 +199,30 @@ function PurchaseBox() {
   }
   const myAddress = link.account.address; //public addr of dummy wallet genesis, guid
 
-  const gasPrice = 1000000;
-  const gaslimit = 10000000;
+  let gasPrice = 100000;
+  let gaslimit = 9999;
+
+  const numOfCrates =
+    myGhostFestival[0] + myGhostFestival[1] + myGhostFestival[2];
+
+  if (numOfCrates > 1) {
+    gaslimit = 100000;
+  }
+  if (numOfCrates > 15) {
+    gaslimit = 200000;
+  }
+
+  if (numOfCrates == 0) {
+    alert("Please choose at least one crate");
+    return;
+  }
 
   if (
-    myGhostFestival[0] == 0 &&
-    myGhostFestival[1] == 0 &&
-    myGhostFestival[2] == 0
+    myGhostFestival[0] > 10 ||
+    myGhostFestival[1] > 10 ||
+    myGhostFestival[2] > 10
   ) {
-    alert("Please choose at least one crate");
+    alert("You can mint up to 10 crates at a time");
     return;
   }
 
@@ -235,7 +273,7 @@ function burnOnWebsite(boxNFTID) {
   console.log(boxNFTID);
 
   let gasPrice = 100000;
-  let gaslimit = 100000;
+  let gaslimit = 10000;
 
   let sb = new ScriptBuilder();
   let script = sb
@@ -259,3 +297,29 @@ function burnOnWebsite(boxNFTID) {
     }
   });
 }
+
+// Get the modal
+var modal = document.getElementById("walletModal");
+
+// Get the button that opens the modal
+var connectBtn = document.getElementById("connectBtn");
+
+// Get the <span> element that closes the modal
+var span = document.getElementsByClassName("close")[0];
+
+// When the user clicks on the button, open the modal
+connectBtn.onclick = function () {
+  modal.style.display = "block";
+};
+
+// When the user clicks on <span> (x), close the modal
+span.onclick = function () {
+  modal.style.display = "none";
+};
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function (event) {
+  if (event.target == modal) {
+    modal.style.display = "none";
+  }
+};
