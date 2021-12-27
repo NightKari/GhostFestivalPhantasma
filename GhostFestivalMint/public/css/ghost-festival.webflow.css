@@ -1210,8 +1210,12 @@
   width: auto;
 }
 
-.tokenId {
-  font-size: 17px;
+.boxTokenId {
+  padding: 20px 62px 10px 75px;
+  font-family: "Varela Round", sans-serif;
+  color: #fff;
+  line-height: 1.3em;
+  font-weight: 600;
 }
 
 .button-open-box {

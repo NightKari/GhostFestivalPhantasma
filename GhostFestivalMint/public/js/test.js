@@ -1,9 +1,9 @@
 const NFTSymbol = "GFNFT";
-const apiUrl = "http://localhost:7078";
+// const apiUrl = "http://localhost:7078";
 // const NFTSymbol = "GNFT";
 // const apiUrl = "http://testnet.phantasma.io:7078";
 // const apiUrl = "http://207.148.17.86:7078";
-// const apiUrl = "https://seed.ghostdevs.com:7078";
+const apiUrl = "https://seed.ghostdevs.com:7078";
 const link = new PhantasmaLink(NFTSymbol);
 
 function httpGet(theUrl) {
@@ -98,14 +98,16 @@ function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
       '<div class="column-19 w-col w-col-10">' +
       '<video width="540" autoplay loop><source src="/assets/crate1.mp4" type="video/mp4"></video>' +
       "</div>" +
+      "<div>" +
+      "<p class='boxTokenId'>#" +
+      commonBoxes[i - 1].tokenId +
+      "</p>" +
+      "</div>" +
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
       commonBoxes[i - 1].nftId +
       '`)">OPEN' +
-      '<span class="tokenId"> #' +
-      commonBoxes[i - 1].tokenId +
-      "</span>" +
       "</a>" +
       "</div>" +
       "</div>" +
@@ -122,13 +124,16 @@ function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
       '<div class="column-19 w-col w-col-10">' +
       '<video width="540" autoplay loop><source src="/assets/crate2.mp4" type="video/mp4"></video>' +
       "</div>" +
+      "<div>" +
+      "<p class='boxTokenId'>#" +
+      (parseInt(rareBoxes[i - 1].tokenId) + 102) +
+      "</p>" +
+      "</div>" +
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
       rareBoxes[i - 1] +
       '`)">OPEN' +
-      '<span class="tokenId"> #' +
-      rareBoxes[i - 1].tokenId +
       "</a>" +
       "</div>" +
       "</div>" +
@@ -145,13 +150,16 @@ function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
       '<div class="column-19 w-col w-col-10">' +
       '<video width="540" autoplay loop><source src="/assets/crate3.mp4" type="video/mp4"></video>' +
       "</div>" +
+      "<div>" +
+      "<p class='boxTokenId'>#" +
+      (parseInt(epicBoxes[i - 1].tokenId) + 65) +
+      "</p>" +
+      "</div>" +
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
       epicBoxes[i - 1] +
       '`)">OPEN' +
-      '<span class="tokenId"> #' +
-      epicBoxes[i - 1].tokenId +
       "</a>" +
       "</div>" +
       "</div>" +
