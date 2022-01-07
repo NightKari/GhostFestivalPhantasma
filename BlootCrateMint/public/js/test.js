@@ -250,6 +250,10 @@ ethereumButton.addEventListener("click", async () => {
 
   document.getElementById("ethWalletBtn").innerText =
     myEthereumAccount.substring(0, 5) + "..." + myEthereumAccount.substring(38);
+
+  const claimable = claimablePairs[myEthereumAccount];
+  document.getElementById("purchase").innerText =
+    "CLAIM " + (claimable ? claimable : 0) + " Crates";
 });
 
 ethereum.on("accountsChanged", function (accounts) {
@@ -258,4 +262,8 @@ ethereum.on("accountsChanged", function (accounts) {
 
   document.getElementById("ethWalletBtn").innerText =
     myEthereumAccount.substring(0, 5) + "..." + myEthereumAccount.substring(38);
+
+  const claimable = claimablePairs[myEthereumAccount];
+  document.getElementById("purchase").innerText =
+    "CLAIM " + (claimable ? claimable : 0) + " Crates";
 });
