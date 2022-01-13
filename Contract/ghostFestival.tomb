@@ -71,7 +71,7 @@ struct badge_ram
 }
 
 // hamma token contract
-token GFNFT{
+token GNFT{
 
 	global _addressOwner: address;
     global _contractName: string;
@@ -364,25 +364,6 @@ token GFNFT{
         _ghostSupply[1] := 3000;
         _ghostSupply[2] := 500;
 
-        _raritySupplies.add(7200);
-        _raritySupplies.add(1575);
-        _raritySupplies.add(225);
-        _raritySupplies.add(7200);
-        _raritySupplies.add(1575);
-        _raritySupplies.add(225);
-        _raritySupplies.add(525);
-        _raritySupplies.add(2325);
-        _raritySupplies.add(150);
-        _raritySupplies.add(525);
-        _raritySupplies.add(2325);
-        _raritySupplies.add(150);
-        _raritySupplies.add(10);
-        _raritySupplies.add(25);
-        _raritySupplies.add(465);
-        _raritySupplies.add(10);
-        _raritySupplies.add(25);
-        _raritySupplies.add(465);
-
         _hammerStrPropertyCount := 8;
         _ghostStrPropertyCount := 8;
         _badgeStrPropertyCount := 4;
@@ -419,45 +400,27 @@ token GFNFT{
     }
 
     public setHammerEndings(index: number, hammerEnding: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _hammerEnding.set(index, hammerEnding);
     }
 
     public setGhostEndings(index: number, ghostEnding: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _ghostEnding.set(index, ghostEnding);
     }
 
     public setHammerTokenIDSource(editionId: number, tokenID: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _hammerTokenIDStorageMap.set(editionId, tokenID);
     }
 
     public setGhostTokenIDSource(editionId: number, tokenID: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _ghostTokenIDStorageMap.set(editionId, tokenID);
     }
 
     public setBadgeTokenIDSource(editionId: number, tokenID: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _badgeTokenIDStorageMap.set(editionId, tokenID);
     }
 
     public setBoxTokenIDSource(editionId: number, tokenID: number) {
-        // check witness
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _boxTokenIDStorageMap.set(editionId, tokenID);
     }
 
     public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
@@ -522,11 +485,7 @@ token GFNFT{
 
     public withdraw(price: number)
     {
-        // check is witness and is current owner
-        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        local thisAddr: address := $THIS_ADDRESS;
-        Token.transfer(thisAddr, _addressOwner, "SOUL", price);
     }
 
     private chooseRarityType(commonSupply: number, rareSupply: number, epicSupply: number): number {
