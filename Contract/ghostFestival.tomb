@@ -125,6 +125,27 @@ token GFNFT{
 
     global _burnMap: storage_map<number, bool>;
 
+    // bloot crates
+    global _blootBoxMaxSupply: number;
+    global _blootBoxCurrentID: number;
+    global _blootBoxIdToTokenID: storage_map<number, number>;
+    global _blootWhitelist: storage_map<string, number>;
+
+    // specky hammer and ghost
+    global _speckyCommonMaxSupply: number;
+    global _speckyRareMaxSupply: number;
+    global _speckyEpicMaxSupply: number;
+
+    global _speckyCommonCurrentSupply: number;
+    global _speckyRareCurrentSupply: number;
+    global _speckyEpicCurrentSupply: number;
+
+    global _speckyBoxId: number;
+    global _speckyHammerId: number;
+    global _speckyGhostId: number;
+    global _boxIdToSpeckyHammerNum: storage_map<number, number>;
+    global _boxIdToSpeckyGhostNum: storage_map<number, number>;
+
     // token name
     property name: string = "Ghost Festival";
     // token version
@@ -369,6 +390,21 @@ token GFNFT{
         _hammerSeriesShift := 10;
         _ghostSeriesShift := 50;
         _badgeSeriesShift := 4;
+
+        _blootBoxMaxSupply := 2268;
+        _blootBoxCurrentID := 1;
+
+        _speckyCommonMaxSupply := 1000;
+        _speckyRareMaxSupply := 522;
+        _speckyEpicMaxSupply := 500;
+
+        _speckyCommonCurrentSupply := 1;
+        _speckyRareCurrentSupply := 1;
+        _speckyEpicCurrentSupply := 1;
+
+        _speckyBoxId := 1;
+        _speckyHammerId := 1;
+        _speckyGhostId := 1;
     }
 
     /// @dev Update the current token contract owner address to another address.
@@ -425,121 +461,63 @@ token GFNFT{
     }
 
     public setHammerSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, hammerType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        if (editionId == 1) {
-            _hammerStrStorageMap.set(1, imageURL);
-            _hammerStrStorageMap.set(2, infoURL);
-            _hammerStrStorageMap.set(3, name);
-            _hammerStrStorageMap.set(4, rarity);
-            _hammerStrStorageMap.set(5, model);
-            _hammerStrStorageMap.set(6, hammerType);
-            _hammerStrStorageMap.set(7, infusedType1);
-            _hammerStrStorageMap.set(8, infusedType2);
-        } else {
-            local temp: number := (editionId-1)*_hammerStrPropertyCount;
-            _hammerStrStorageMap.set(temp + 1, imageURL);
-            _hammerStrStorageMap.set(temp + 2, infoURL);
-            _hammerStrStorageMap.set(temp + 3, name);
-            _hammerStrStorageMap.set(temp + 4, rarity);
-            _hammerStrStorageMap.set(temp + 5, model);
-            _hammerStrStorageMap.set(temp + 6, hammerType);
-            _hammerStrStorageMap.set(temp + 7, infusedType1);
-            _hammerStrStorageMap.set(temp + 8, infusedType2);
-        }
-
-        _hammerCurSupplyStorageMap.set(editionId, currentSupply);
-        _hammerMaxSupplyStorageMap.set(editionId, maxSupply);
+      
     }
 
     public setGhostSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, model: string, ghostType: string, infusedType1: string, infusedType2: string, currentSupply: number, maxSupply: number) {
-        if (editionId == 1) {
-            _ghostStrStorageMap.set(1, imageURL);
-            _ghostStrStorageMap.set(2, infoURL);
-            _ghostStrStorageMap.set(3, name);
-            _ghostStrStorageMap.set(4, rarity);
-            _ghostStrStorageMap.set(5, model);
-            _ghostStrStorageMap.set(6, ghostType);
-            _ghostStrStorageMap.set(7, infusedType1);
-            _ghostStrStorageMap.set(8, infusedType2);
-        } else {
-            local temp: number := (editionId-1)*_ghostStrPropertyCount;
-            _ghostStrStorageMap.set(temp + 1, imageURL);
-            _ghostStrStorageMap.set(temp + 2, infoURL);
-            _ghostStrStorageMap.set(temp + 3, name);
-            _ghostStrStorageMap.set(temp + 4, rarity);
-            _ghostStrStorageMap.set(temp + 5, model);
-            _ghostStrStorageMap.set(temp + 6, ghostType);
-            _ghostStrStorageMap.set(temp + 7, infusedType1);
-            _ghostStrStorageMap.set(temp + 8, infusedType2);
-        }
         
-        _ghostCurSupplyStorageMap.set(editionId, currentSupply);
-        _ghostMaxSupplyStorageMap.set(editionId, maxSupply);
     }
 
     public setBadgeSource(editionId: number, imageURL: string, infoURL: string, name: string, rarity: string, currentSupply: number, maxSupply: number) {
-        if (editionId == 1) {
-            _badgeStrStorageMap.set(1, imageURL);
-            _badgeStrStorageMap.set(2, infoURL);
-            _badgeStrStorageMap.set(3, name);
-            _badgeStrStorageMap.set(4, rarity);
-        } else {
-            local temp: number := (editionId-1)*_badgeStrPropertyCount;
-            _badgeStrStorageMap.set(temp + 1, imageURL);
-            _badgeStrStorageMap.set(temp + 2, infoURL);
-            _badgeStrStorageMap.set(temp + 3, name);
-            _badgeStrStorageMap.set(temp + 4, rarity);
-        }
-
-        _badgeCurSupplyStorageMap.set(editionId, currentSupply);
-        _badgeMaxSupplyStorageMap.set(editionId, maxSupply);
+        
     }
 
     public createBoxSeries() {
+
+    }
+
+    public createHammerSeries() {
+
+    }
+
+    public createGhostSeries() {
+
+    }
+
+    public createBadgeSeries() {
+
+    }
+
+    public createGenericBoxSeries(editionId: number, maxSupply: number) {
         // check witness
         Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
         // create series for box
-        local index: number := 1;
-        while (index <= 3) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index, 50000, TokenSeries.Duplicated, boxNft);
-            index := index + 1;
-        }
+        NFT.createSeries(_addressOwner, $THIS_SYMBOL, editionId, maxSupply, TokenSeries.Duplicated, boxNft);
     }
 
-    public createHammerSeries() {
+    public createGenericHammerSeries(editionId: number, maxSupply: number) {
         // check witness
         Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        // create series for hammer
-        local index: number := 1;
-        while (index <= _hammerEnding.get(3)) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _hammerSeriesShift, _hammerMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, hammerNft);
-            index := index + 1;
-        }
+        // create series for box
+        NFT.createSeries(_addressOwner, $THIS_SYMBOL, editionId, maxSupply, TokenSeries.Duplicated, hammerNft);
     }
 
-    public createGhostSeries() {
+    public createGenericGhostSeries(editionId: number, maxSupply: number) {
         // check witness
         Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        // create series for ghost
-        local index: number := 1;
-        while (index <= _ghostEnding.get(3)) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _ghostSeriesShift, _ghostMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, ghostNft);
-            index := index + 1;
-        }
+        // create series for box
+        NFT.createSeries(_addressOwner, $THIS_SYMBOL, editionId, maxSupply, TokenSeries.Duplicated, ghostNft);
     }
 
-    public createBadgeSeries() {
+    public createGenericBadgeSeries(editionId: number, maxSupply: number) {
         // check witness
         Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        // create series for badge
-        local index: number := 1;
-        while (index <= 3) {
-            NFT.createSeries(_addressOwner, $THIS_SYMBOL, index + _badgeSeriesShift, _badgeMaxSupplyStorageMap.get(index), TokenSeries.Duplicated, badgeNft);
-            index := index + 1;
-        }
+        // create series for box
+        NFT.createSeries(_addressOwner, $THIS_SYMBOL, editionId, maxSupply, TokenSeries.Duplicated, badgeNft);
     }
 
     public withdraw(price: number)
@@ -632,6 +610,7 @@ token GFNFT{
     }
 
     private mintAndInfuse(owner:address, typeOfBox:number, hammerIndex:number, ghostIndex:number) {
+
         // mint box
         local rom1:box_rom := Struct.box_rom(_royalty);       
         local ram1:box_ram;
@@ -650,7 +629,37 @@ token GFNFT{
         _boxIdToHammerIndex.set(boxTokenID, hammerIndex);
         _boxIdToGhostIndex.set(boxTokenID, ghostIndex);
         _boxIdToBadgeIndex.set(boxTokenID, typeOfBox);
-    
+
+        _boxIdToSpeckyHammerNum.set(boxTokenID, 0);
+        _boxIdToSpeckyGhostNum.set(boxTokenID, 0);
+      
+        if (typeOfBox == 1) {
+            local isSpeckyBoxEven: number := _speckyBoxId % 2;
+            if (_speckyCommonCurrentSupply <= _speckyCommonMaxSupply) {
+                if (isSpeckyBoxEven == 1) {
+                    _boxIdToSpeckyHammerNum.set(boxTokenID, 1);
+                } else {
+                    _boxIdToSpeckyGhostNum.set(boxTokenID, 1);
+                }
+                _speckyBoxId := _speckyBoxId + 1;
+                _speckyCommonCurrentSupply := _speckyCommonCurrentSupply + 1;
+            }
+        }  else {
+            if (typeOfBox == 2) {
+                if (_speckyRareCurrentSupply <= _speckyRareMaxSupply) {
+                    _boxIdToSpeckyHammerNum.set(boxTokenID, 1);
+                    _boxIdToSpeckyGhostNum.set(boxTokenID, 1);
+                    _speckyRareCurrentSupply := _speckyRareCurrentSupply + 1;
+                }
+            } else {
+                if (_speckyEpicCurrentSupply <= _speckyEpicMaxSupply) {
+                    _boxIdToSpeckyHammerNum.set(boxTokenID, 5);
+                    _boxIdToSpeckyGhostNum.set(boxTokenID, 5);
+                    _speckyEpicCurrentSupply := _speckyEpicCurrentSupply + 1;
+                }
+            }
+        }
+
 /*
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, hammerTokenID);
         NFT.infuse(owner, $THIS_SYMBOL, boxTokenID, $THIS_SYMBOL, ghostTokenID);
@@ -841,8 +850,8 @@ token GFNFT{
         _ghostSupply[ghostType] := _ghostSupply[ghostType] - 1;
     }
 
-    public burnOnMarket(from:address, symbol:string, tokenID:number) {
-        NFT.burn(from, symbol, tokenID);
+    public burn(from:address, symbol:string, tokenID:number) {
+
     }
 
     public burnOnWebsite(from:address, symbol:string, tokenID:number) {
@@ -880,37 +889,139 @@ token GFNFT{
         local rom2:hammer_rom := Struct.hammer_rom(_royalty);
         local ram2:hammer_ram;        
         if (hammerIndex == 1) {
-            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(3), _hammerStrStorageMap.get(3), _hammerStrStorageMap.get(1), "ipfs://QmXDzzeVMbkyD9mft6uLDFJ8qsmixAuG1ToDvNokJUtLpL/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(4), _hammerStrStorageMap.get(5), _hammerStrStorageMap.get(6), 0, 0, _hammerStrStorageMap.get(7), _hammerStrStorageMap.get(8));
+            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(3), _hammerStrStorageMap.get(3), _hammerStrStorageMap.get(1), "ipfs://QmXAEPp1NhgQh8hmXuRCALknjyrK4DosFaVHFe1izbjNhg/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(4), _hammerStrStorageMap.get(5), _hammerStrStorageMap.get(6), 0, 0, _hammerStrStorageMap.get(7), _hammerStrStorageMap.get(8));
         } else {
             temp := (hammerIndex - 1) * _hammerStrPropertyCount;
-            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp + 1), "ipfs://QmXDzzeVMbkyD9mft6uLDFJ8qsmixAuG1ToDvNokJUtLpL/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(temp + 4), _hammerStrStorageMap.get(temp + 5), _hammerStrStorageMap.get(temp + 6), 0, 0, _hammerStrStorageMap.get(temp + 7), _hammerStrStorageMap.get(temp + 8));
+            ram2 := Struct.hammer_ram(_hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp+3), _hammerStrStorageMap.get(temp + 1), "ipfs://QmXAEPp1NhgQh8hmXuRCALknjyrK4DosFaVHFe1izbjNhg/" + _hammerTokenIDStorageMap.get(hammerIndex), _hammerStrStorageMap.get(temp + 4), _hammerStrStorageMap.get(temp + 5), _hammerStrStorageMap.get(temp + 6), 0, 0, _hammerStrStorageMap.get(temp + 7), _hammerStrStorageMap.get(temp + 8));
         }
-        local hammerTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom2, ram2, hammerIndex + _hammerSeriesShift);
+        NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom2, ram2, hammerIndex + _hammerSeriesShift);
 
         // mint ghost
         local rom3: ghost_rom := Struct.ghost_rom(_royalty);
         local ram3: ghost_ram;
         if (ghostIndex == 1) {
-            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(3), _ghostStrStorageMap.get(3), _ghostStrStorageMap.get(1), "ipfs://QmY9HS4MHGMQY1z6Zb5FT8mT4QtkYKoSVKiL1Rxm4ah11P/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(4), _ghostStrStorageMap.get(5), _ghostStrStorageMap.get(6), 0, 0, _ghostStrStorageMap.get(7), _ghostStrStorageMap.get(8), false);
+            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(3), _ghostStrStorageMap.get(3), _ghostStrStorageMap.get(1), "ipfs://QmcTMDAQaRugNhz5mS1Kc3tCN1zr3TUsctWByA9KCqsnGd/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(4), _ghostStrStorageMap.get(5), _ghostStrStorageMap.get(6), 0, 0, _ghostStrStorageMap.get(7), _ghostStrStorageMap.get(8), false);
         } else {
             temp := (ghostIndex - 1) * _ghostStrPropertyCount;
-            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), "ipfs://QmY9HS4MHGMQY1z6Zb5FT8mT4QtkYKoSVKiL1Rxm4ah11P/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(temp + 4), _ghostStrStorageMap.get(temp + 5), _ghostStrStorageMap.get(temp + 6), 0, 0, _ghostStrStorageMap.get(temp + 7), _ghostStrStorageMap.get(temp + 8), false);
+            ram3 := Struct.ghost_ram(_ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), "ipfs://QmcTMDAQaRugNhz5mS1Kc3tCN1zr3TUsctWByA9KCqsnGd/" + _ghostTokenIDStorageMap.get(ghostIndex), _ghostStrStorageMap.get(temp + 4), _ghostStrStorageMap.get(temp + 5), _ghostStrStorageMap.get(temp + 6), 0, 0, _ghostStrStorageMap.get(temp + 7), _ghostStrStorageMap.get(temp + 8), false);
         }
-        local ghostTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, ghostIndex + _ghostSeriesShift);
+        NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, ghostIndex + _ghostSeriesShift);
 
         // mint badge
         local rom4: badge_rom := Struct.badge_rom(_royalty);
         local ram4: badge_ram;
 
         if (badgeIndex == 1) {
-            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(3), _badgeStrStorageMap.get(3), _badgeStrStorageMap.get(1), "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), _badgeStrStorageMap.get(4));
+            ram4 := Struct.badge_ram("Normal Badge", "Normal Badge", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/badge_normal.mp4", "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), "Common");
         } else {
-            temp := (badgeIndex - 1) * _badgeStrPropertyCount;
-            ram4 := Struct.badge_ram(_badgeStrStorageMap.get(temp+3), _badgeStrStorageMap.get(temp+3), _ghostStrStorageMap.get(temp + 1), "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), _badgeStrStorageMap.get(temp + 4));
+            if (badgeIndex == 2) {
+                ram4 := Struct.badge_ram("Silver Badge", "Silver Badge", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/badge_silver.mp4", "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), "Rare");
+            } else {
+                ram4 := Struct.badge_ram("Golden Badge", "Golden Badge", "ipfs://QmaawWqovxBR66zTHLGgPvtxCNkD9H6fLmRP9EmoyrxoTb/badge_golden.mp4", "ipfs://Qmd5Pr3cqFkv6kf6TtzNwJKpoX2xMbpZGSxryGJ1UDnpnG/" + _badgeTokenIDStorageMap.get(badgeIndex), "Epic");
+            }
         }
 
         local badgeSeriesID: number := badgeIndex + _badgeSeriesShift;
-        local badgeTokenID: number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom4, ram4, badgeSeriesID);
+        NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom4, ram4, badgeSeriesID);
+
+        local speckyHammerNum: number := _boxIdToSpeckyHammerNum.get(tokenID);
+        local speckyGhostNum: number := _boxIdToSpeckyGhostNum.get(tokenID);
+        local index: number := 1;
+
+        if (speckyHammerNum > 0) {
+            index := 1;
+            while (index <= speckyHammerNum) {
+                // mint specky hammer
+                rom2 := Struct.hammer_rom(_royalty);
+                ram2 := Struct.hammer_ram("Rare Specky Hammer", "Rare Specky Hammer", "ipfs://QmVdZxqZPJhyB6XRjCj2khDXJnkZuzcmjxJFdM3AdNUmt7/hammer_specky_1.mp4", "ipfs://QmcnYUBthC8bwf7666Ye3BfCXn84vprEKdRUCw5uD4jiFT/1", "Rare", "Rare", "OG", 0, 0, "None", "None");
+                NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom2, ram2, 42);
+
+                index := index + 1;
+//                _speckyHammerId := _speckyHammerId + 1;
+            }
+        }
+
+        if (speckyGhostNum > 0) {
+            index := 1;
+            while (index <= speckyGhostNum) {
+                // mint specky ghost
+                rom3 := Struct.ghost_rom(_royalty);
+                ram3 := Struct.ghost_ram("Rare Translucent Ghost", "Rare Translucent Ghost", "ipfs://QmVdZxqZPJhyB6XRjCj2khDXJnkZuzcmjxJFdM3AdNUmt7/ghost_translucent_blue.mp4", "ipfs://QmYS9pmowSuf3GjSQ5vX3SBUfzmEiNT6k9BMnAFXoJUYpX/1", "Rare", "Rare", "OG", 0, 0, "None", "None", false);
+                NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, 60);
+
+                index := index + 1;
+//                _speckyGhostId := _speckyGhostId + 1;
+            }
+        }
+    }
+
+    public setBlootWhitelist(ethAddress: string, claimable: number) {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _blootWhitelist.set(ethAddress, claimable);
+    }
+
+    public mintBlootCrate(owner:address, ethAddress: string) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        // check if all bloot crates are sold out
+        Runtime.expect(_blootBoxCurrentID <= _blootBoxMaxSupply, "The bloot crate is all sold out");
+
+        local claimable: number := _blootWhitelist.get(ethAddress);
+        // check if this user is able to claim
+        Runtime.expect(claimable > 0, "You already claimed your Bloot Crates");
+        // 4 bloot crates per zen elf
+        claimable := claimable * 4;
+
+        local index: number := 1;
+        while (index <= claimable) {
+            // mint bloot box
+            local rom1:box_rom := Struct.box_rom(_royalty);
+            local ram1:box_ram := Struct.box_ram("Bloot Crate", "Bloot Crate", "ipfs://QmW2jJSmeADosXLd6QHeVrXCP5qUtF7cwkaJFVmMm4YsgE/Crate_4.mp4", "ipfs://QmVcJ86C1etNEqhyPwSQRwd93Rsp4o7keTGPKGv4FD9VTf/" + _blootBoxCurrentID);
+
+            local boxTokenID: number := NFT.mint(_addressOwner, owner, $THIS_SYMBOL, rom1, ram1, 4);
+            _blootBoxIdToTokenID.set(boxTokenID, _blootBoxCurrentID);
+            _blootBoxCurrentID := _blootBoxCurrentID + 1;
+
+            index := index + 1;
+        }
+
+        _blootWhitelist.set(ethAddress, 0);
+
+    }
+
+    public burnBlootCrateOnWebsite(from:address, symbol:string, tokenID:number) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+        
+        _burnMap.set(tokenID, true);
+        NFT.burn(from, symbol, tokenID);
+
+        local _blootBoxCurrentID: number := _blootBoxIdToTokenID.get(tokenID);
+
+        _blootBoxIdToTokenID.remove(tokenID);
+
+        if (_blootBoxCurrentID <= 0) {
+            return;
+        }
+
+        if (symbol != $THIS_SYMBOL) {
+            return;
+        }
+
+        local temp: number := 0;
+
+        // mint hammer
+        local rom2:hammer_rom := Struct.hammer_rom(_royalty);
+        local ram2:hammer_ram := Struct.hammer_ram("Rare Bloot Hammer", "Rare Bloot Hammer", "ipfs://QmW2jJSmeADosXLd6QHeVrXCP5qUtF7cwkaJFVmMm4YsgE/hammer_bloot_1.mp4", "ipfs://QmcSqHDDPY1HCTAosRxygZHd8dt9hNXmsvauvMezLCju5g/" + _blootBoxCurrentID, "Rare", "Regular", "OG", 0, 0, "None", "None");
+        NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom2, ram2, 41);
+
+        // mint ghost
+        local rom3: ghost_rom := Struct.ghost_rom(_royalty);
+        local ram3: ghost_ram := Struct.ghost_ram("Rare Bloot Ghost", "Rare Bloot Ghost", "ipfs://QmW2jJSmeADosXLd6QHeVrXCP5qUtF7cwkaJFVmMm4YsgE/Ghost_Bloot_1.mp4", "ipfs://QmNZoGVigjBf1rv4Y9gbpj6BW6em71PCTtidkdQLtfeAyA/" + _blootBoxCurrentID, "Rare", "Regular", "OG", 0, 0, "None", "None", false);
+        NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, 59);
     }
 
     trigger onBurn(from:address, to:address, symbol:string, tokenID:number) {
@@ -924,5 +1035,20 @@ token GFNFT{
     {
         // check is witness and is current owner
 		Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
+
+        _blootBoxMaxSupply := 2268;
+        _blootBoxCurrentID := 1;
+
+        _speckyCommonMaxSupply := 1000;
+        _speckyRareMaxSupply := 522;
+        _speckyEpicMaxSupply := 500;
+
+        _speckyCommonCurrentSupply := 1;
+        _speckyRareCurrentSupply := 1;
+        _speckyEpicCurrentSupply := 1;
+
+        _speckyBoxId := 1;
+        _speckyHammerId := 1;
+        _speckyGhostId := 1;
     }
 }
