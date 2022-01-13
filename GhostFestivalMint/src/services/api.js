@@ -1,8 +1,10 @@
 export async function getCurrnetSupplies() {
-  //   const symbol = "GFNFT";
-  //   const domain = "http://localhost:7078";
-  const symbol = "GNFT";
-  const domain = "http://testnet.phantasma.io:7078";
+  const symbol = "GFNFT";
+  // const domain = "http://localhost:7078";
+  // const symbol = "GNFT";
+  // const domain = "http://testnet.phantasma.io:7078";
+  // const domain = "http://207.148.17.86:7078";
+  const domain = "https://seed.ghostdevs.com:7078";
   const getTokenURL = domain + "/api/getToken?symbol=" + symbol;
   let tokenJson;
   await fetch(getTokenURL)
@@ -10,6 +12,7 @@ export async function getCurrnetSupplies() {
       return res.json();
     })
     .then(function (data) {
+      console.log("====", data);
       tokenJson = data;
     })
     .catch(function (err) {

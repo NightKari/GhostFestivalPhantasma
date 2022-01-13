@@ -176,12 +176,12 @@
 }
 
 .paragraph {
-  margin-top: 0px;
+  margin-top: 20px;
   margin-bottom: 0px;
-  padding: 10px 62px 30px 75px;
+  padding: 10px 62px 5px 75px;
   font-family: "Varela Round", sans-serif;
   color: #fff;
-  font-size: 14px;
+  font-size: 22px;
   line-height: 1.3em;
   font-weight: 600;
   text-align: center;
@@ -363,6 +363,15 @@
   -webkit-align-items: center;
   -ms-flex-align: center;
   align-items: center;
+}
+
+.connectBtnGrp {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.boxImageContainer {
+  padding: 40px 0;
 }
 
 .column {
@@ -664,17 +673,37 @@
 }
 
 .button-3 {
-  margin-right: 20px;
-  border-style: solid;
-  border-width: 3px;
-  border-color: #5b00da;
+  margin-right: 20px !important;
+  border-style: solid !important;
+  border-width: 3px !important;
+  border-color: #5b00da !important;
   border-radius: 10px;
-  background-color: #f06;
+  background-color: #ff0066b5;
   font-family: "Changa One", Impact, sans-serif;
   color: #ff0;
   padding: 5px 15px;
   font-size: 20px;
   font-weight: 500;
+}
+
+.button4Container {
+  text-align: center;
+}
+
+.button-4 {
+  margin-right: 20px !important;
+  border-style: solid !important;
+  border-width: 3px !important;
+  border-color: #5b00da !important;
+  border-radius: 10px !important;
+  background-color: green !important;
+  font-family: "Changa One", Impact, sans-serif;
+  color: #ff0 !important;
+  padding: 5px 15px !important;
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  line-height: inherit !important;
+  height: auto !important;
 }
 
 .button-3:hover {
