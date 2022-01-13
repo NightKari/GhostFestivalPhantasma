@@ -253,7 +253,7 @@ ethereumButton.addEventListener("click", async () => {
 
   const claimable = claimablePairs[myEthereumAccount];
   document.getElementById("purchase").innerText =
-    "CLAIM " + (claimable ? claimable : 0) + " Crates";
+    "CLAIM " + (claimable ? claimable * 4 : 0) + " Crates";
 });
 
 ethereum.on("accountsChanged", function (accounts) {
@@ -265,5 +265,5 @@ ethereum.on("accountsChanged", function (accounts) {
 
   const claimable = claimablePairs[myEthereumAccount];
   document.getElementById("purchase").innerText =
-    "CLAIM " + (claimable ? claimable : 0) + " Crates";
+    "CLAIM " + (claimable ? claimable * 4 : 0) + " Crates";
 });
