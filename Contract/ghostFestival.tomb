@@ -71,7 +71,7 @@ struct badge_ram
 }
 
 // hamma token contract
-token GNFT{
+token GFNFT{
 
 	global _addressOwner: address;
     global _contractName: string;
@@ -145,6 +145,8 @@ token GNFT{
     global _speckyGhostId: number;
     global _boxIdToSpeckyHammerNum: storage_map<number, number>;
     global _boxIdToSpeckyGhostNum: storage_map<number, number>;
+
+    global _tcktSymbol: string;
 
     // token name
     property name: string = "Ghost Festival";
@@ -386,6 +388,8 @@ token GNFT{
         _speckyBoxId := 1;
         _speckyHammerId := 1;
         _speckyGhostId := 1;
+
+        _tcktSymbol := "TCKT";
     }
 
     /// @dev Update the current token contract owner address to another address.
@@ -808,11 +812,11 @@ token GNFT{
         _hammerSupply[hammerType] := _hammerSupply[hammerType] - 1;
         _ghostSupply[ghostType] := _ghostSupply[ghostType] - 1;
     }
-
+/*
     public burn(from:address, symbol:string, tokenID:number) {
 
     }
-
+*/
     public burnOnWebsite(from:address, symbol:string, tokenID:number) {
         // check is witness and is current owner
         Runtime.expect(Runtime.isWitness(from), "invalid witness");
@@ -983,6 +987,88 @@ token GNFT{
         NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom3, ram3, 59);
     }
 
+    public fuseHammer(from:address, tokenID1:number, tokenID2:number, tcktBurn:number, name:string, description:string, imageURL:string, infoURL:string, rarity:string, model:string, hammerType:string, level:number, power:number, infusedType1:string, infusedType2:string) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+
+        local tcktBalance:number := Token.getBalance(from, _tcktSymbol);
+        // Make sure the TCKT balance is greater than the amount to be burned
+        Runtime.expect(tcktBalance >= tcktBurn, "Insufficient TCKT balance");
+
+        // burn x % of TCKT and second NFT
+        Token.burn(from, _tcktSymbol, tcktBurn);
+        _burnMap.set(tokenID2, true);
+        NFT.burn(from, $THIS_SYMBOL, tokenID2);
+
+        // fuse NFT
+        local ram:hammer_ram := Struct.hammer_ram(name, description, imageURL, infoURL, rarity, model, hammerType, level, power, infusedType1, infusedType2);
+        NFT.write(from, $THIS_SYMBOL, tokenID1, ram);
+    }
+
+    public upgradeHammer(from:address, tokenID:number, tcktBurn:number, name:string, description:string, imageURL:string, infoURL:string, rarity:string, model:string, hammerType:string, level:number, power:number, infusedType1:string, infusedType2:string) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+
+        local tcktBalance:number := Token.getBalance(from, _tcktSymbol);
+        // Make sure the TCKT balance is greater than the amount to be burned
+        Runtime.expect(tcktBalance >= tcktBurn, "Insufficient TCKT balance");
+
+        // burn x % of TCKT
+        Token.burn(from, _tcktSymbol, tcktBurn);
+
+        // upgrade NFT
+        local ram:hammer_ram := Struct.hammer_ram(name, description, imageURL, infoURL, rarity, model, hammerType, level, power, infusedType1, infusedType2);
+        NFT.write(from, $THIS_SYMBOL, tokenID, ram);
+    }
+
+    public fuseGhost(from:address, tokenID1:number, tokenID2:number, tcktBurn:number, name:string, description:string, imageURL:string, infoURL:string, rarity:string, model:string, ghostType:string, level:number, health:number, infusedType1:string, infusedType2:string, unboxed:bool) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+
+        local tcktBalance:number := Token.getBalance(from, _tcktSymbol);
+        // Make sure the TCKT balance is greater than the amount to be burned
+        Runtime.expect(tcktBalance >= tcktBurn, "Insufficient TCKT balance");
+
+        // burn x % of TCKT and second NFT
+        Token.burn(from, _tcktSymbol, tcktBurn);
+        _burnMap.set(tokenID2, true);
+        NFT.burn(from, $THIS_SYMBOL, tokenID2);
+
+        // fuse NFT
+        local ram:ghost_ram := Struct.ghost_ram(name, description, imageURL, infoURL, rarity, model, ghostType, level, health, infusedType1, infusedType2, unboxed);
+        NFT.write(from, $THIS_SYMBOL, tokenID1, ram);
+    }
+
+    public upgradeGhost(from:address, tokenID:number, tcktBurn:number, name:string, description:string, imageURL:string, infoURL:string, rarity:string, model:string, ghostType:string, level:number, health:number, infusedType1:string, infusedType2:string, unboxed:bool) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+
+        local tcktBalance:number := Token.getBalance(from, _tcktSymbol);
+        // Make sure the TCKT balance is greater than the amount to be burned
+        Runtime.expect(tcktBalance >= tcktBurn, "Insufficient TCKT balance");
+
+        // burn x % of TCKT
+        Token.burn(from, _tcktSymbol, tcktBurn);
+
+        // upgrade NFT
+        local ram:ghost_ram := Struct.ghost_ram(name, description, imageURL, infoURL, rarity, model, ghostType, level, health, infusedType1, infusedType2, unboxed);
+        NFT.write(from, $THIS_SYMBOL, tokenID, ram);
+    }
+
+    public fuseHammerTest(from:address, name:string, description:string, imageURL:string, infoURL:string, rarity:string, model:string, hammerType:string, level:number, power:number, infusedType1:string, infusedType2:string) {
+        // check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(from), "invalid witness");
+
+        NFT.createSeries(_addressOwner, $THIS_SYMBOL, 41, 100, TokenSeries.Duplicated, hammerNft);
+        local rom:hammer_rom := Struct.hammer_rom(_royalty);
+        local ram:hammer_ram := Struct.hammer_ram("Rare Bloot Hammer", "Rare Bloot Hammer", "ipfs://QmW2jJSmeADosXLd6QHeVrXCP5qUtF7cwkaJFVmMm4YsgE/hammer_bloot_1.mp4", "ipfs://QmcSqHDDPY1HCTAosRxygZHd8dt9hNXmsvauvMezLCju5g/" + _blootBoxCurrentID, "Rare", "Regular", "OG", 0, 0, "None", "None");
+        local tokenID:number := NFT.mint(_addressOwner, from, $THIS_SYMBOL, rom, ram, 41);
+
+        // fuse NFT
+        local ram2:hammer_ram := Struct.hammer_ram(name, description, imageURL, infoURL, rarity, model, hammerType, level, power, infusedType1, infusedType2);
+        NFT.write(from, $THIS_SYMBOL, tokenID, ram2);
+    }
+
     trigger onBurn(from:address, to:address, symbol:string, tokenID:number) {
         local isValidBurn: bool := _burnMap.get(tokenID);
         Runtime.expect(isValidBurn == true, "Please try to burn on the Ghost Festival website");
@@ -995,19 +1081,6 @@ token GNFT{
         // check is witness and is current owner
 		Runtime.expect(Runtime.isWitness(_addressOwner), "invalid witness");
 
-        _blootBoxMaxSupply := 2268;
-        _blootBoxCurrentID := 1;
-
-        _speckyCommonMaxSupply := 1000;
-        _speckyRareMaxSupply := 522;
-        _speckyEpicMaxSupply := 500;
-
-        _speckyCommonCurrentSupply := 1;
-        _speckyRareCurrentSupply := 1;
-        _speckyEpicCurrentSupply := 1;
-
-        _speckyBoxId := 1;
-        _speckyHammerId := 1;
-        _speckyGhostId := 1;
+        _tcktSymbol := "TCKT";
     }
 }

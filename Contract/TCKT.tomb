@@ -1,0 +1,59 @@
+token TCKT { // this defines the token symbol as DOG
+	import Runtime;
+	import Token;
+
+	property name:string = "TCKT";
+
+	property isFungible: bool = true;
+
+	property isDivisible: bool = true;
+	property decimals:number = 18; // required only if isDivisible is true
+	
+	property isTransferable: bool = true;
+	property isBurnable: bool = true;
+	
+	property isFinite: bool = false;
+	//property maxSupply: number = 1000000; // required only if isFinite is true
+	
+	global _admin: address;
+	
+	constructor(owner:address)	{
+		_admin := owner;
+	}
+
+	/// @dev Update the current token contract owner address to another address.
+    /// @param newOwner - Address of the new owner - address
+    public updateOwner(newOwner:address)
+    {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_admin), "invalid witness");
+
+        // set new owner
+        _admin := newOwner;
+    }
+
+    public mintToken(owner:address, amount:number, power:number)
+    {
+    	// check witness
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        Token.mint(_admin, owner, $THIS_SYMBOL, Decimal.convert(power, amount));
+    }
+
+	public burnToken(owner:address, amount:number, power:number)
+    {
+    	// check witness
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+		Token.burn(owner, $THIS_SYMBOL, Decimal.convert(power, amount));
+    }
+
+	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
+	trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+		return;
+	}
+	
+	// its possible to also add more triggers, custom methods etc
+}
