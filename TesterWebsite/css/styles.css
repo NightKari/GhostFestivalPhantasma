@@ -1,0 +1,94 @@
+.margin-top-20 {
+  margin-top: 20px;
+}
+
+.content-center {
+  display: flex;
+  justify-content: center;
+}
+
+.content-space {
+  display: flex;
+  justify-content: space-around;
+}
+
+.button-layout {
+  width: 80%;
+  margin: 10px;
+}
+
+.button-collapse {
+  display: flex;
+  justify-content: center;
+  margin: 30px auto;
+  width: 80%;
+}
+
+.tckt-section {
+  border: dashed 1px;
+  margin: 0px 50px;
+}
+
+.gfnft-section {
+  border: dashed 1px;
+  margin: 0px 50px;
+}
+
+.mint-amount {
+  width: 40%;
+}
+
+.upgrade-hammer-id {
+  width: 80%;
+}
+
+.burn-amount {
+  width: 80%;
+}
+
+.bonus-amount {
+  background-color: #d1ecf1;
+  display: flex;
+  align-items: center;
+  margin: 0px 40px;
+}
+
+.hammer-detail {
+  background-color: #d1ecf1;
+  padding: 10px;
+}
+
+.ghost-detail {
+  background-color: #e32b61ed;
+  padding: 10px;
+}
+
+.tckt-balance {
+  background-color: #d1ecf1;
+  padding: 5px;
+  width: 80%;
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.margin-50 {
+  margin: 30px 0px;
+}
+
+.margin-10 {
+  margin: 10px 0px;
+}
+
+.red-note {
+  display: flex;
+  justify-content: flex-end;
+  margin-right: 60px;
+  color: red;
+}
+
+.hr-custom-opacity {
+  border-top: 1px solid rgba(0, 0, 0, 0.8);
+}

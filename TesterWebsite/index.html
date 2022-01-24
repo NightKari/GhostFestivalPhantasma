@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <link href="css/phantasma.css" rel="stylesheet" type="text/css" />
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+    <link href="css/styles.css" rel="stylesheet" type="text/css" />
+    <title>TCKT test</title>
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row margin-top-20">
+        <div class="col-sm tckt-section">
+          <div class="row content-center margin-50">
+            <button
+              type="button"
+              class="btn btn-primary button-layout"
+              onclick='loginToPhantasma("poltergeist", 1)'
+            >
+              Login To TCKT Application
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            <input
+              type="text"
+              class="form-control mint-amount"
+              placeholder="Enter the amount of TCKT"
+              aria-label="Enter the amount of TCKT"
+              aria-describedby="basic-addon1"
+              id="tcktAmount"
+            />
+            <div class="bonus-amount" id="bonusAmount">
+              Bonus percent will be: 0%
+            </div>
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-secondary button-layout"
+              onclick="mintTCKTToken()"
+            >
+              mint TCKT Token
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            <input
+              type="text"
+              class="form-control burn-amount"
+              placeholder="Enter the amount of TCKT"
+              aria-label="Enter the amount of TCKT"
+              aria-describedby="basic-addon1"
+              id="burnAmount"
+            />
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-success button-layout"
+              onclick="burnTCKTToken()"
+            >
+              burn TCKT Token
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-outline-danger button-layout" button-layout"
+              onclick="getTCKTBalance()"
+            >
+              get TCKT Balance
+            </button>
+          </div>
+          <div class="row content-center margin-10">
+            <div class="tckt-balance" id="tcktBalance">
+              Your current TCKT balance is 0 TCKT
+            </div>
+          </div>
+        </div>
+        <div class="col-sm gfnft-section">
+          <div class="row content-center margin-50">
+            <button
+              type="button"
+              class="btn btn-primary button-layout"
+              onclick='loginToPhantasma("poltergeist", 2)'
+            >
+              Login To GFNFT Application
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+
+
+          <button class="btn btn-secondary button-collapse" type="button" data-toggle="collapse" data-target="#hammer_ghost_details" aria-expanded="false" aria-controls="hammer_ghost_details">
+            Show / Hide My Hammers and Ghosts
+          </button>
+          <div class="collapse" id="hammer_ghost_details">
+            <div class="card card-body">
+              <div id="hammerDetails">
+              </div>
+              <div id="ghostDetails">
+              </div>
+            </div>
+          </div>
+          <div class="row content-center margin-10">
+            Fuse Hammer
+          </div>
+          <div class="row content-space margin-10">
+            <input
+              type="text"
+              class="form-control mint-amount"
+              placeholder="Enter the source hammer ID"
+              aria-label="Enter the source hammer ID"
+              aria-describedby="basic-addon1"
+              id="sourceHammerID"
+            />
+            <input
+              type="text"
+              class="form-control mint-amount"
+              placeholder="Enter the target hammer ID"
+              aria-label="Enter the target hammer ID"
+              aria-describedby="basic-addon1"
+              id="targetHammerID"
+            />
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-success button-layout"
+              onclick="fuseHammer()"
+            >
+              Fuse and Burn Hammer
+            </button>
+          </div>
+          <div class="red-note">* source hammer will be burned</div>
+          <hr class="hr-custom-opacity" />
+          <div class="row content-center margin-10">
+            Fuse Ghost
+          </div>
+          <div class="row content-space margin-10">
+            <input
+              type="text"
+              class="form-control mint-amount"
+              placeholder="Enter the source ghost ID"
+              aria-label="Enter the source ghost ID"
+              aria-describedby="basic-addon1"
+              id="sourceGhostID"
+            />
+            <input
+              type="text"
+              class="form-control mint-amount"
+              placeholder="Enter the target hammer ID"
+              aria-label="Enter the target hammer ID"
+              aria-describedby="basic-addon1"
+              id="targetGhostID"
+            />
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-warning button-layout"
+              onclick="fuseGhost()"
+            >
+              Fuse and Burn Ghost
+            </button>
+          </div>
+          <div class="red-note">* source ghost will be burned</div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            Upgrade Hammer
+          </div>
+          <div class="row content-space margin-10">
+            <input
+              type="text"
+              class="form-control upgrade-hammer-id"
+              placeholder="Enter the hammer ID to upgrade"
+              aria-label="Enter the hammer ID to upgrade"
+              aria-describedby="basic-addon1"
+              id="upgradeHammerID"
+            />
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-info button-layout"
+              onclick="upgradeHammer()"
+            >
+              Upgrade Hammer
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            Upgrade Ghost
+          </div>
+          <div class="row content-space margin-10">
+            <input
+              type="text"
+              class="form-control upgrade-hammer-id"
+              placeholder="Enter the ghost ID to upgrade"
+              aria-label="Enter the ghost ID to upgrade"
+              aria-describedby="basic-addon1"
+              id="upgradeGhostID"
+            />
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-outline-primary button-layout"
+              onclick="upgradeGhost()"
+            >
+              Upgrade Ghost
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="js/jquery-3.4.1.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/decode.js"></script>
+  <script src="js/phantasma.js"></script>
+  <script src="js/main.js"></script>
+</html>
