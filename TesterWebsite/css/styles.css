@@ -26,12 +26,12 @@
 
 .tckt-section {
   border: dashed 1px;
-  margin: 0px 50px;
+  margin: 10px 50px;
 }
 
 .gfnft-section {
   border: dashed 1px;
-  margin: 0px 50px;
+  margin: 10px 50px;
 }
 
 .mint-amount {
@@ -51,6 +51,13 @@
   display: flex;
   align-items: center;
   margin: 0px 40px;
+}
+
+.current-inflation-label {
+  background-color: #d1ecf1;
+  display: flex;
+  align-items: center;
+  margin: 0px 80px;
 }
 
 .hammer-detail {
@@ -91,4 +98,10 @@
 
 .hr-custom-opacity {
   border-top: 1px solid rgba(0, 0, 0, 0.8);
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }

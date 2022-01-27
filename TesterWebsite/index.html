@@ -22,6 +22,23 @@
           </div>
           <hr class="hr-custom-opacity"/>
           <div class="row content-center margin-10">
+            <div class="tckt-balance" id="tcktSupply">
+              Current TCKT supply is 0 TCKT
+            </div>
+          </div>
+          <div class="row content-center margin-10">
+            <div class="current-inflation-label">
+              Current inflation: 
+            </div>
+            <input type="number" value="1.0" id="inflation" oninput="onChangeInflation(this.value)"/>
+          </div>
+          <div class="row content-center margin-10">
+            <div class="tckt-balance" id="currentTcktBurnAmount">
+              Current infuse / upgrade price is 1000 TCKT
+            </div>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
             <input
               type="text"
               class="form-control mint-amount"
@@ -74,7 +91,7 @@
             </button>
           </div>
           <div class="row content-center margin-10">
-            <div class="tckt-balance" id="tcktBalance">
+            <div class="tckt-balance" id="myTcktBalance">
               Your current TCKT balance is 0 TCKT
             </div>
           </div>
@@ -90,8 +107,16 @@
             </button>
           </div>
           <hr class="hr-custom-opacity"/>
-
-
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-success button-layout"
+              onclick="callInitContractVar()"
+            >
+              Initialize contract variables
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
           <button class="btn btn-secondary button-collapse" type="button" data-toggle="collapse" data-target="#hammer_ghost_details" aria-expanded="false" aria-controls="hammer_ghost_details">
             Show / Hide My Hammers and Ghosts
           </button>
@@ -103,6 +128,7 @@
               </div>
             </div>
           </div>
+          <hr class="hr-custom-opacity"/>
           <div class="row content-center margin-10">
             Fuse Hammer
           </div>
@@ -128,7 +154,7 @@
             <button
               type="button"
               class="btn btn-success button-layout"
-              onclick="fuseHammer()"
+              onclick="fuseNFT(1)"
             >
               Fuse and Burn Hammer
             </button>
@@ -160,7 +186,7 @@
             <button
               type="button"
               class="btn btn-warning button-layout"
-              onclick="fuseGhost()"
+              onclick="fuseNFT(2)"
             >
               Fuse and Burn Ghost
             </button>
@@ -184,7 +210,7 @@
             <button
               type="button"
               class="btn btn-info button-layout"
-              onclick="upgradeHammer()"
+              onclick="upgradeNFT(1)"
             >
               Upgrade Hammer
             </button>
@@ -207,7 +233,7 @@
             <button
               type="button"
               class="btn btn-outline-primary button-layout"
-              onclick="upgradeGhost()"
+              onclick="upgradeNFT(2)"
             >
               Upgrade Ghost
             </button>

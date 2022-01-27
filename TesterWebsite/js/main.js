@@ -1,8 +1,15 @@
 const apiUrl = "http://localhost:7078";
-// const symbol = "GNFT";
+// const apiUrl = "http://testnet.phantasma.io:7078";
+// const apiUrl = "http://207.148.17.86:7078";
+// const apiUrl = "https://seed.ghostdevs.com:7078";
+// const ghostFestivalSymbol = "GNFT";
 const ghostFestivalSymbol = "GFNFT";
 const tcktSymbol = "TCKT";
-let tcktDecimals = 18;
+const tcktTargetSupplyAmount = 10000; // target value amount for inflation tracker
+const tcktTargetSupplyPower = 18; // target value power for inflation tracker
+const tcktBurnAmount = 1000; // TCKT burn amount for upgrade / fuse
+const tcktBurnPower = 18; // TCKT burn power for upgrade / fuse
+let tcktDecimals = 18; // will be changed once queried, just initialized here
 let bonus = 0;
 let linkToTCKT = new PhantasmaLink(tcktSymbol);
 let linkToGFNFT = new PhantasmaLink(ghostFestivalSymbol);
@@ -68,6 +75,7 @@ const fetchBadgeBalance = async (myAddress) => {
           else if (parseInt(series) == 6) rareBadges++;
           else if (parseInt(series) == 7) epicBadges++;
         }
+        break;
       }
     }
   }
@@ -129,6 +137,30 @@ function loginToPhantasma(providerHint, application) {
       providerHint
     );
   }
+}
+
+function callInitContractVar() {
+  const myAddress = linkToGFNFT.account.address;
+  const gasPrice = 100000;
+  const gaslimit = 10000;
+
+  const sb = new ScriptBuilder();
+  const script = sb
+    .callContract("gas", "AllowGas", [
+      myAddress,
+      sb.nullAddress(),
+      gasPrice,
+      gaslimit,
+    ])
+    .callContract(ghostFestivalSymbol, "initializeVariables", [myAddress])
+    .callContract("gas", "SpendGas", [myAddress])
+    .endScript();
+
+  linkToGFNFT.sendTransaction("main", script, "festival1.0", function (result) {
+    console.log("========", result);
+    if (!result || !result.success) alert("Failed to initialize variables");
+    else alert("successfully initialize variables");
+  });
 }
 
 /*
@@ -294,13 +326,46 @@ async function getTCKTBalance() {
     const token = tokens[i];
     if (token.symbol == tcktSymbol) {
       tcktBalance = token.amount / Math.pow(10, token.decimals);
-      tcktDecimals = token.decimals;
+      break;
     }
   }
-  console.log("TCKT balance is " + tcktBalance);
-  document.getElementById("tcktBalance").innerText =
+  // set user's balance
+  console.log("Your TCKT balance is " + tcktBalance);
+  document.getElementById("myTcktBalance").innerText =
     "Your current TCKT balance is " + tcktBalance + " TCKT";
-  return tcktBalance;
+
+  // set TCKT total supply
+  const currentTcktSupply = await getCurrentTCKTSupply();
+  console.log("TCKT current supply is " + currentTcktSupply);
+  document.getElementById("tcktSupply").innerText =
+    "TCKT current supply is " + currentTcktSupply + " TCKT";
+
+  // set inflation value
+  const inflation =
+    currentTcktSupply < tcktTargetSupplyAmount
+      ? 1
+      : currentTcktSupply / tcktTargetSupplyAmount;
+  document.getElementById("inflation").value = inflation;
+
+  // set current infuse / upgrade price
+  let currentTcktBurnAmount = tcktBurnAmount;
+  currentTcktBurnAmount = currentTcktBurnAmount * inflation;
+  document.getElementById("currentTcktBurnAmount").innerText =
+    "Current infuse / upgrade price is " + currentTcktBurnAmount + " TCKT";
+
+  return;
+}
+
+/*
+*****************************************************************************
+ Update infuse / upgrade price in real time according to changing inflation
+*****************************************************************************
+*/
+function onChangeInflation(inflation) {
+  console.log(inflation);
+  const currentTcktBurnAmount = tcktBurnAmount * inflation;
+  document.getElementById("currentTcktBurnAmount").innerText =
+    "Current infuse / upgrade price is " + currentTcktBurnAmount + " TCKT";
 }
 
 /*
@@ -356,6 +421,7 @@ async function getMyGFNFT() {
             ghostNFTIDs.push(nftIDs[j]);
           }
         }
+        break;
       }
     }
   }
@@ -377,9 +443,9 @@ const ramByID = async (nftID) => {
 };
 
 /*
-*******************************
+**************************************************************
  Render hammer/ghost detailed info given hammer/ghost object
-*******************************
+**************************************************************
 */
 const renderHammerHTML = (hammerObj) => {
   document.getElementById("hammerDetails").innerHTML +=
@@ -424,30 +490,64 @@ const renderGhostHTML = (ghostObj) => {
 };
 
 /*
-*******************************
- fuse one hammer into another
-*******************************
+*********************************************
+ fuse one hammer or ghost into another
+ we have source and target nft
+ source will be burned and fused into target
+*********************************************
 */
-async function fuseHammer() {
+async function fuseNFT(type) {
   const myAddress = linkToGFNFT.account.address;
-  const tcktBurn = 1000;
-  const sourceHammerIDHTML = document.getElementById("sourceHammerID").value;
-  const sourceHammerID = parseInt(sourceHammerIDHTML ? sourceHammerIDHTML : 0);
+  const { currentTcktBurnAmount, currentTcktBurnPower } =
+    await calcTCKTBurnAmount();
 
-  const targetHammerIDHTML = document.getElementById("targetHammerID").value;
-  const targetHammerID = parseInt(targetHammerIDHTML ? targetHammerIDHTML : 0);
-
-  if (sourceHammerID <= 0 || targetHammerID <= 0) {
-    alert("source hammer ID and target hammer ID can not be empty or zero");
+  const sourceIndexHTML =
+    type === 1
+      ? document.getElementById("sourceHammerID").value
+      : document.getElementById("sourceGhostID").value;
+  const sourceIndex = parseInt(sourceIndexHTML ? sourceIndexHTML : 0);
+  const targetIndexHTML =
+    type === 1
+      ? document.getElementById("targetHammerID").value
+      : document.getElementById("targetGhostID").value;
+  const targetIndex = parseInt(targetIndexHTML ? targetIndexHTML : 0);
+  if (sourceIndex <= 0 || targetIndex <= 0) {
+    alert("source and target ID can not be empty or zero");
     return;
   }
-  const sourceHammerNFTID = hammerNFTIDs[sourceHammerID - 1];
-  const targetHammerNFTID = hammerNFTIDs[targetHammerID - 1];
+  const sourceNFTID =
+    type === 1 ? hammerNFTIDs[sourceIndex - 1] : ghostNFTIDs[sourceIndex - 1];
+  const targetNFTID =
+    type === 1 ? hammerNFTIDs[targetIndex - 1] : ghostNFTIDs[targetIndex - 1];
 
-  const sourceHammerNFT = await ramByID(sourceHammerNFTID);
-  const targetHammerNFT = await ramByID(targetHammerNFTID);
-  console.log(sourceHammerNFT, sourceHammerNFT.name);
-  console.log(targetHammerNFT, targetHammerNFT.name);
+  const sourceNFTObj = await ramByID(sourceNFTID);
+  const targetNFTObj = await ramByID(targetNFTID);
+  console.log(sourceNFTID, sourceNFTObj.name);
+  console.log(targetNFTID, targetNFTObj.name);
+
+  let infusedType1 = targetNFTObj.infusedType1;
+  let infusedType2 = targetNFTObj.infusedType2;
+  // check if the target is already filled all in InfusedType1 and InfusedType2
+  if (infusedType1 !== "None" && infusedType2 !== "None") {
+    console.log(
+      "The target nft is already filled for infusion, no more infusion allowed"
+    );
+    alert(
+      "The target nft is already filled for infusion, no more infusion allowed"
+    );
+    return;
+  }
+
+  if (infusedType1 === "None") {
+    infusedType1 =
+      type === 1 ? sourceNFTObj.hammerType : sourceNFTObj.ghostType;
+    infusedType2 = "None";
+  } else if (infusedType2 === "None") {
+    infusedType1 =
+      type === 1 ? targetNFTObj.hammerType : targetNFTObj.ghostType;
+    infusedType2 =
+      type === 1 ? sourceNFTObj.hammerType : sourceNFTObj.ghostType;
+  }
 
   const gasPrice = 100000;
   const gaslimit = 10000;
@@ -460,41 +560,139 @@ async function fuseHammer() {
       gasPrice,
       gaslimit,
     ])
-    .callContract(ghostFestivalSymbol, "fuseHammer", [
+    .callContract(ghostFestivalSymbol, "fuseNFT", [
+      type,
       myAddress,
-      targetHammerNFTID,
-      sourceHammerNFTID,
-      tcktBurn,
-      targetHammerNFT.name,
-      targetHammerNFT.description,
-      targetHammerNFT.imageURL,
-      targetHammerNFT.infoURL,
-      targetHammerNFT.rarity,
-      targetHammerNFT.model,
-      targetHammerNFT.hammerType,
-      targetHammerNFT.level,
-      targetHammerNFT.power,
-      // sourceHammerNFT.name,
-      "Albert infused",
-      targetHammerNFT.infusedType2,
+      targetNFTID,
+      sourceNFTID,
+      currentTcktBurnAmount,
+      currentTcktBurnPower,
+      targetNFTObj.name,
+      targetNFTObj.description,
+      targetNFTObj.imageURL,
+      targetNFTObj.infoURL,
+      targetNFTObj.rarity,
+      targetNFTObj.model,
+      type === 1 ? targetNFTObj.hammerType : targetNFTObj.ghostType,
+      targetNFTObj.level,
+      infusedType1,
+      infusedType2,
+      true,
     ])
     .callContract("gas", "SpendGas", [myAddress])
     .endScript();
 
   linkToGFNFT.sendTransaction("main", script, "festival1.0", function (result) {
     console.log("========", result);
-    if (!result || !result.success) alert("Failed to fuse Hammer");
+    if (!result || !result.success)
+      alert("Failed to fuse " + (type === 1 ? "Hammer" : "Ghost"));
     else {
       getMyGFNFT();
-      alert("successfully fused Hammer");
+      alert("successfully fused " + (type === 1 ? "Hammer" : "Ghost"));
     }
   });
 }
 
 /*
-*******************************
+**************************************
+ upgrade hammer or ghost one level up
+ type: 1 for hammer, 2 for ghost
+**************************************
+*/
+async function upgradeNFT(type) {
+  const myAddress = linkToGFNFT.account.address;
+
+  const { currentTcktBurnAmount, currentTcktBurnPower } =
+    await calcTCKTBurnAmount();
+
+  let tokenID = 0;
+  if (type == 1) {
+    const hammerIDHTML = document.getElementById("upgradeHammerID").value;
+    tokenID = parseInt(hammerIDHTML ? hammerIDHTML : 0);
+  } else {
+    const ghostIDHTML = document.getElementById("upgradeGhostID").value;
+    tokenID = parseInt(ghostIDHTML ? ghostIDHTML : 0);
+  }
+
+  if (tokenID <= 0) {
+    alert((type == 1 ? "hammer" : "ghost") + " ID can not be empty or zero");
+    return;
+  }
+  console.log(type === 1 ? hammerNFTIDs : ghostNFTIDs, tokenID);
+
+  tokenID = type === 1 ? hammerNFTIDs[tokenID - 1] : ghostNFTIDs[tokenID - 1];
+  const nftObj = await ramByID(tokenID);
+  const level = parseInt(nftObj.level) + 1;
+
+  const gasPrice = 100000;
+  const gaslimit = 10000;
+
+  const sb = new ScriptBuilder();
+  const script = sb
+    .callContract("gas", "AllowGas", [
+      myAddress,
+      sb.nullAddress(),
+      gasPrice,
+      gaslimit,
+    ])
+    .callContract(ghostFestivalSymbol, "upgradeNFT", [
+      type,
+      myAddress,
+      tokenID,
+      currentTcktBurnAmount,
+      currentTcktBurnPower,
+      nftObj.name,
+      nftObj.description,
+      nftObj.imageURL,
+      nftObj.infoURL,
+      nftObj.rarity,
+      nftObj.model,
+      type === 1 ? nftObj.hammerType : nftObj.ghostType,
+      level,
+      nftObj.infusedType1,
+      nftObj.infusedType2,
+      type === 2 ? true : true,
+    ])
+    .callContract("gas", "SpendGas", [myAddress])
+    .endScript();
+
+  linkToGFNFT.sendTransaction("main", script, "festival1.0", function (result) {
+    console.log("========", result);
+    if (!result || !result.success)
+      alert("Failed to upgrade " + (type === 1 ? "Hammer" : "Ghost"));
+    else {
+      getMyGFNFT();
+      alert("successfully upgraded " + (type === 1 ? "Hammer" : "Ghost"));
+    }
+  });
+}
+
+/*
+****************************************************************
+ calculate inflation and get the relevant burn amount and power
+****************************************************************
+*/
+const calcTCKTBurnAmount = async () => {
+  let currentTcktBurnAmount = tcktBurnAmount;
+
+  let inflation = document.getElementById("inflation").value;
+  inflation = inflation ? parseFloat(inflation) : 1.0;
+  console.log(currentTcktBurnAmount, inflation);
+
+  currentTcktBurnAmount = currentTcktBurnAmount * inflation;
+  console.log(currentTcktBurnAmount, inflation);
+  const decimalOfAmount = currentTcktBurnAmount.countDecimals();
+  currentTcktBurnAmount = currentTcktBurnAmount * Math.pow(10, decimalOfAmount);
+  const currentTcktBurnPower = tcktBurnPower - decimalOfAmount;
+
+  console.log(decimalOfAmount, currentTcktBurnAmount, currentTcktBurnPower);
+  return { currentTcktBurnAmount, currentTcktBurnPower };
+};
+
+/*
+***********************************
  clear Hammer/Ghost detail content
-*******************************
+***********************************
 */
 const clearHammerGhostHTML = () => {
   document.getElementById("hammerDetails").innerHTML = "";
@@ -506,7 +704,7 @@ const clearHammerGhostHTML = () => {
  get TCKT current supply
 *******************************
 */
-const getCurrentTCKT = async () => {
+const getCurrentTCKTSupply = async () => {
   let currentSupply = 0;
   const res = await $.getJSON(apiUrl + "/api/getToken?symbol=" + tcktSymbol);
   console.log(res);
