@@ -1,8 +1,9 @@
-token TCKT { // this defines the token symbol as DOG
+token TCKT { // this defines the token symbol as TCKT
 	import Runtime;
 	import Token;
 
 	property name:string = "TCKT";
+	property symbol:string = "TCKT";
 
 	property isFungible: bool = true;
 
