@@ -38,6 +38,15 @@
   width: 40%;
 }
 
+.claim-amount {
+  width: 20%;
+}
+
+.space-even {
+  display: flex;
+  justify-content: space-evenly;
+}
+
 .upgrade-hammer-id {
   width: 80%;
 }
@@ -57,7 +66,7 @@
   background-color: #d1ecf1;
   display: flex;
   align-items: center;
-  margin: 0px 80px;
+  margin: 0px 60px;
 }
 
 .hammer-detail {

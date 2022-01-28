@@ -95,6 +95,57 @@
               Your current TCKT balance is 0 TCKT
             </div>
           </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            <div class="tckt-balance" id="myGFNFTs">
+              You are holding 0 common, 0 rare and 0 epic ones
+            </div>
+          </div>
+          <div class="row content-center margin-10">
+            <button
+              type="button"
+              class="btn btn-info button-layout"
+              onclick="claimTCKTToken()"
+            >
+              Claim my TCKT
+            </button>
+          </div>
+          <hr class="hr-custom-opacity"/>
+          <div class="row content-center margin-10">
+            <div class="row space-even margin-10">
+              <input
+                type="text"
+                class="form-control claim-amount"
+                placeholder="Common"
+                aria-label="Common"
+                aria-describedby="basic-addon1"
+                id="commonTcktAmount"
+              />
+              <input
+                type="text"
+                class="form-control claim-amount"
+                placeholder="Rare"
+                aria-label="Rare"
+                aria-describedby="basic-addon1"
+                id="rareTcktAmount"
+              />
+              <input
+                type="text"
+                class="form-control claim-amount"
+                placeholder="Epic"
+                aria-label="Epic"
+                aria-describedby="basic-addon1"
+                id="epicTcktAmount"
+              />
+            </div>
+            <button
+              type="button"
+              class="btn btn-warning button-layout"
+              onclick="setTcktAmountPerRarity()"
+            >
+              Set TCKT Amount Per Rarity (Owner call)
+            </button>
+          </div>
         </div>
         <div class="col-sm gfnft-section">
           <div class="row content-center margin-50">

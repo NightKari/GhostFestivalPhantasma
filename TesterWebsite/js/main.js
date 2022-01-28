@@ -37,13 +37,15 @@ Number.prototype.countDecimals = function () {
 
 /*
 ******************************************************************
- Fetch the badge balance, we have normal, rare and epic badges
+ Fetch the GFNFT balance, we have normal, rare and epic GFNFT
+ type 1: fetch normal, rare and epic badges
+ type 2: fetch normal, rare and epic GFNFT. All hammer/ghost/badges count
 ******************************************************************
 */
-const fetchBadgeBalance = async (myAddress) => {
-  let normalBadges = 0;
-  let rareBadges = 0;
-  let epicBadges = 0;
+const fetchGFNFTBalance = async (myAddress, type) => {
+  let normalNFT = 0;
+  let rareNFT = 0;
+  let epicNFT = 0;
   const res = await $.getJSON(apiUrl + "/api/getAccount?account=" + myAddress);
   console.log(res);
   if (!res) {
@@ -71,16 +73,42 @@ const fetchBadgeBalance = async (myAddress) => {
           console.log("====1", nthNft[0]);
           const series = nthNft[0].series;
 
-          if (parseInt(series) == 5) normalBadges++;
-          else if (parseInt(series) == 6) rareBadges++;
-          else if (parseInt(series) == 7) epicBadges++;
+          if (type == 1) {
+            // consider only badges 5 for normal badge, 6 for rare badge and 7 for epic badge
+            if (parseInt(series) == 5) normalNFT++;
+            else if (parseInt(series) == 6) rareNFT++;
+            else if (parseInt(series) == 7) epicNFT++;
+          } else if (type == 2) {
+            // consider all GFNFTs
+            // common: badge: 5, hamer: 11-28, ghost: 51-52
+            // rare: badge: 6, hamer: 29-37, ghost: 53-56
+            // epic: badge: 7, hamer: 38-40, ghost: 57-58
+            if (
+              parseInt(series) == 5 ||
+              (parseInt(series) >= 11 && parseInt(series) <= 28) ||
+              (parseInt(series) >= 51 && parseInt(series) <= 52)
+            )
+              normalNFT++;
+            else if (
+              parseInt(series) == 6 ||
+              (parseInt(series) >= 29 && parseInt(series) <= 37) ||
+              (parseInt(series) >= 53 && parseInt(series) <= 56)
+            )
+              rareNFT++;
+            else if (
+              parseInt(series) == 7 ||
+              (parseInt(series) >= 38 && parseInt(series) <= 40) ||
+              (parseInt(series) >= 57 && parseInt(series) <= 58)
+            )
+              epicNFT++;
+          }
         }
         break;
       }
     }
   }
-  console.log({ normalBadges, rareBadges, epicBadges });
-  return { normalBadges, rareBadges, epicBadges };
+  console.log({ normalNFT, rareNFT, epicNFT });
+  return { normalNFT, rareNFT, epicNFT };
 };
 
 /*
@@ -90,11 +118,11 @@ const fetchBadgeBalance = async (myAddress) => {
 */
 const getTCKTBonusAmount = async () => {
   const myAddress = linkToTCKT.account.address;
-  const badgeBalance = await fetchBadgeBalance(myAddress); // takes some time
+  const badgeBalance = await fetchGFNFTBalance(myAddress, 1); // takes some time
   console.log(
-    badgeBalance.normalBadges,
-    badgeBalance.rareBadges,
-    badgeBalance.epicBadges
+    badgeBalance.normalNFT,
+    badgeBalance.rareNFT,
+    badgeBalance.epicNFT
   );
   bonus = sumBestOnes(badgeBalance);
   document.getElementById("bonusAmount").innerText =
@@ -117,6 +145,7 @@ function loginToPhantasma(providerHint, application) {
           initializeTCKTVar();
           getTCKTBonusAmount();
           getTCKTBalance();
+          renderGFNFTCounts();
         }
       },
       2,
@@ -171,30 +200,30 @@ function callInitContractVar() {
 */
 const sumBestOnes = (badgeBalance) => {
   let sum = 0;
-  let normalBadges = badgeBalance.normalBadges;
-  let rareBadges = badgeBalance.rareBadges;
-  let epicBadges = badgeBalance.epicBadges;
+  let normalNFT = badgeBalance.normalNFT;
+  let rareNFT = badgeBalance.rareNFT;
+  let epicNFT = badgeBalance.epicNFT;
 
   const normalBadgeBonus = 1;
   const rareBadgeBonus = 2;
   const epicBadgeBonus = 3;
 
-  if (normalBadges + rareBadges + epicBadges <= 6) {
+  if (normalNFT + rareNFT + epicNFT <= 6) {
     sum =
-      normalBadgeBonus * normalBadges +
-      rareBadgeBonus * rareBadges +
-      epicBadgeBonus * epicBadges;
+      normalBadgeBonus * normalNFT +
+      rareBadgeBonus * rareNFT +
+      epicBadgeBonus * epicNFT;
   } else {
     for (let i = 0; i < 6; i++) {
-      if (epicBadges > 0) {
+      if (epicNFT > 0) {
         sum += epicBadgeBonus;
-        epicBadges--;
-      } else if (rareBadges > 0) {
+        epicNFT--;
+      } else if (rareNFT > 0) {
         sum += rareBadgeBonus;
-        rareBadges--;
-      } else if (normalBadges > 0) {
+        rareNFT--;
+      } else if (normalNFT > 0) {
         sum += normalBadgeBonus;
-        normalBadges--;
+        normalNFT--;
       }
     }
   }
@@ -497,7 +526,13 @@ const renderGhostHTML = (ghostObj) => {
 *********************************************
 */
 async function fuseNFT(type) {
+  if (!linkToGFNFT.account) {
+    console.log("Connect your wallet to GFNFT App first");
+    alert("Connect your wallet to GFNFT App first");
+    return;
+  }
   const myAddress = linkToGFNFT.account.address;
+
   const { currentTcktBurnAmount, currentTcktBurnPower } =
     await calcTCKTBurnAmount();
 
@@ -600,6 +635,11 @@ async function fuseNFT(type) {
 **************************************
 */
 async function upgradeNFT(type) {
+  if (!linkToGFNFT.account) {
+    console.log("Connect your wallet to GFNFT App first");
+    alert("Connect your wallet to GFNFT App first");
+    return;
+  }
   const myAddress = linkToGFNFT.account.address;
 
   const { currentTcktBurnAmount, currentTcktBurnPower } =
@@ -720,6 +760,121 @@ const getCurrentTCKTSupply = async () => {
     currentSupply = currentSupply / Math.pow(10, decimals);
   }
   return currentSupply;
+};
+
+/*
+********************************************************
+ Claim TCKT Token based on how many of each rarity holds
+********************************************************
+*/
+async function claimTCKTToken() {
+  console.log("claimTCKTToken is clicked");
+  if (!linkToTCKT.account) {
+    console.log("Connect your wallet to TCKT App first");
+    alert("Connect your wallet to TCKT App first");
+    return;
+  }
+  const myAddress = linkToTCKT.account.address;
+
+  const { normalNFT, rareNFT, epicNFT } = await fetchGFNFTBalance(myAddress, 2); // takes some time
+  console.log(normalNFT, rareNFT, epicNFT);
+
+  const gasPrice = 100000;
+  const gaslimit = 10000;
+
+  const sb = new ScriptBuilder();
+  const script = sb
+    .callContract("gas", "AllowGas", [
+      myAddress,
+      sb.nullAddress(),
+      gasPrice,
+      gaslimit,
+    ])
+    .callContract(tcktSymbol, "claimToken", [
+      myAddress,
+      normalNFT,
+      rareNFT,
+      epicNFT,
+    ])
+    .callContract("gas", "SpendGas", [myAddress])
+    .endScript();
+
+  linkToTCKT.sendTransaction("main", script, "festival1.0", function (result) {
+    console.log("========", result);
+    if (!result || !result.success) alert("Failed to claim TCKT");
+    else {
+      getTCKTBalance();
+      alert("successfully claimed TCKT");
+    }
+  });
+}
+
+/*
+**************************************
+ Set TCKT Amount Per Rarity (Owner call)
+**************************************
+*/
+async function setTcktAmountPerRarity() {
+  console.log("setTcktAmountPerRarity is clicked");
+  if (!linkToTCKT.account) {
+    console.log("Connect your wallet to TCKT App first");
+    alert("Connect your wallet to TCKT App first");
+    return;
+  }
+  const myAddress = linkToTCKT.account.address;
+
+  const gasPrice = 100000;
+  const gaslimit = 10000;
+
+  let commonTcktAmount = document.getElementById("commonTcktAmount").value;
+  let rareTcktAmount = document.getElementById("rareTcktAmount").value;
+  let epicTcktAmount = document.getElementById("epicTcktAmount").value;
+
+  commonTcktAmount = parseInt(commonTcktAmount ? commonTcktAmount : 0);
+  rareTcktAmount = parseInt(rareTcktAmount ? rareTcktAmount : 0);
+  epicTcktAmount = parseInt(epicTcktAmount ? epicTcktAmount : 0);
+
+  console.log(commonTcktAmount, rareTcktAmount, epicTcktAmount);
+
+  const sb = new ScriptBuilder();
+  const script = sb
+    .callContract("gas", "AllowGas", [
+      myAddress,
+      sb.nullAddress(),
+      gasPrice,
+      gaslimit,
+    ])
+    .callContract(tcktSymbol, "setTcktAmountPerRarity", [
+      commonTcktAmount,
+      rareTcktAmount,
+      epicTcktAmount,
+    ])
+    .callContract("gas", "SpendGas", [myAddress])
+    .endScript();
+
+  linkToTCKT.sendTransaction("main", script, "festival1.0", function (result) {
+    console.log("========", result);
+    if (!result || !result.success)
+      alert("Failed to set TCKT amount per rarity");
+    else {
+      alert("successfully set TCKT amount per rarity");
+    }
+  });
+}
+
+const renderGFNFTCounts = async () => {
+  const myAddress = linkToTCKT.account.address;
+  const { normalNFT, rareNFT, epicNFT } = await fetchGFNFTBalance(myAddress, 2); // takes some time
+  console.log(normalNFT, rareNFT, epicNFT);
+
+  document.getElementById("myGFNFTs").innerHTML =
+    "You are holding " +
+    normalNFT +
+    " common, " +
+    rareNFT +
+    " rare and " +
+    epicNFT +
+    " epic ones";
 };
 
 window.onload = (event) => {
