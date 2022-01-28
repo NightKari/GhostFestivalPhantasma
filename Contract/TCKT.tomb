@@ -1,0 +1,103 @@
+token TCKT { // this defines the token symbol as TCKT
+	import Runtime;
+	import Token;
+	import Map;
+
+	property name:string = "TCKT";
+	property symbol:string = "TCKT";
+
+	property isFungible: bool = true;
+
+	property isDivisible: bool = true;
+	property decimals:number = 18; // required only if isDivisible is true
+	
+	property isTransferable: bool = true;
+	property isBurnable: bool = true;
+	
+	property isFinite: bool = false;
+	//property maxSupply: number = 1000000; // required only if isFinite is true
+	
+	global _admin: address;
+
+	global _claimedListMap: storage_map<address, bool>;
+
+	global _tcktForCommon:number;
+	global _tcktForRare:number;
+	global _tcktForEpic:number;
+
+	global _decimals:number;
+	
+	constructor(owner:address)	{
+		_admin := owner;
+
+		// initialize the TCKT amount per each rarity
+		_tcktForCommon := 1000;
+		_tcktForRare := 1300;
+		_tcktForEpic := 1500;
+
+		_decimals := 18;
+	}
+
+	/// @dev Update the current token contract owner address to another address.
+    /// @param newOwner - Address of the new owner - address
+    public updateOwner(newOwner:address)
+    {
+        // check witness
+        Runtime.expect(Runtime.isWitness(_admin), "invalid witness");
+
+        // set new owner
+        _admin := newOwner;
+    }
+
+    public mintToken(owner:address, amount:number, power:number)
+    {
+    	// check witness
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        Token.mint(_admin, owner, $THIS_SYMBOL, Decimal.convert(power, amount));
+    }
+
+	public burnToken(owner:address, amount:number, power:number)
+    {
+    	// check witness
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+		Token.burn(owner, $THIS_SYMBOL, Decimal.convert(power, amount));
+    }
+
+	public setTcktAmountPerRarity(tcktForCommon:number, tcktForRare:number, tcktForEpic:number) {
+		// check witness
+        Runtime.expect(Runtime.isWitness(_admin), "invalid witness");
+
+		// clear the claimListMap since this would allow the users to claim again
+		_claimedListMap.clear();		
+
+		// update the TCKT amount per each rarity
+		_tcktForCommon := tcktForCommon;
+		_tcktForRare := tcktForRare;
+		_tcktForEpic := tcktForEpic;
+	}
+
+	public claimToken(owner:address, commonNFT:number, rareNFT:number, epicNFT:number) {
+		// check witness
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+		local isClaimed:bool := _claimedListMap.get(owner);
+		Runtime.expect(!isClaimed, "You already claimed all the TCKTs");
+
+		local totalTCKT:number := 0;
+		totalTCKT := commonNFT * _tcktForCommon + rareNFT * _tcktForRare + epicNFT * _tcktForEpic;
+		Token.mint(_admin, owner, $THIS_SYMBOL, Decimal.convert(_decimals, totalTCKT));
+
+		_claimedListMap.set(owner, true);
+	}
+
+	// allows the token to be upgraded later, remove this trigger if you want a imutable fungible token
+	trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+		return;
+	}
+	
+	// its possible to also add more triggers, custom methods etc
+}
