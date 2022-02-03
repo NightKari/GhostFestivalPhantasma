@@ -1,0 +1,302 @@
+struct loan
+{
+    loanID:number;
+    created:timestamp;
+    deadline:timestamp;
+    lender:address;
+    borrower:address;
+    hammerTokenID:number;
+    ghostTokenID:number;
+    badgeTokenIDs:array<number>;
+    isActive:bool;
+}
+
+contract gfescrow {
+	import Runtime;
+    import Token;
+	import NFT;
+    import Time;
+    import Map;
+
+    global _admin:address;
+    
+    /* Constants start */
+    global gfnft_symbol:string;
+    global tckt_symbol:string;
+    global tckt_power:number;
+    /* Constants end */
+
+    /* Global variable start */
+    global current_loan_id:number;
+    global loanIdToLoan: storage_map<number, loan>;
+    global addressToReward: storage_map<address, number>;
+    /* Global variable end */
+
+    constructor(owner:address)
+    {
+		_admin := owner;
+
+        // Define global constants
+        gfnft_symbol := "GFNFT";
+        tckt_symbol := "TCKT";
+        tckt_power := 18;
+
+        // Initialize global variables
+        current_loan_id := 0;
+	}
+
+    public updateOwner(newOwner:address)
+    {
+        // Check witness
+        Runtime.expect(Runtime.isWitness(_admin), "invalid witness");
+
+        // Set new owner
+        _admin := newOwner;
+        return;
+    }
+
+    /********************************/
+    /* Write functions start here.. */
+    /********************************/
+
+    // @notice  This function will be called by the borrower to mint TCKT during the game
+    //          The amount will be splitted by 50% and 50% to the lender and borrower
+    //          This function will merely sets the respective amount of TCKT to be claimed later
+    // @param   owner   -   address of the borrower
+    // @param   loanID  -   loan id the borrower is loaning
+    // @param   amount  -   amount of TCKT he earned in the game
+    public earnTCKT(owner:address, loanID:number, amount:number)
+    {
+        // Check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        local myLoan: loan := loanIdToLoan.get(loanID);
+        
+        // Check is valid borrower
+        Runtime.expect(owner == myLoan.borrower, "You are not the borrower of this loan id");
+
+        // Check is active lone for the owner
+        Runtime.expect(Time.now() < myLoan.deadline, "Your loan is already finished");
+        Runtime.expect(Time.now() > myLoan.created, "This loan is not active yet");
+        
+        // Mint TCKT to this contract address
+        local thisAddr:address := $THIS_ADDRESS;
+        
+        // Not actual TCKT mint, just keep the amount in the Map variable
+        // Actual TCKT mint will be done when the user is calling claimReward function
+        addressToReward.set(myLoan.lender, amount/2);
+        addressToReward.set(myLoan.borrower, amount/2);
+    }
+
+    // @notice  This function will be called by the lender and borrower to actually claim TCKT
+    //          This function will reset the reward mapping variable once the owner claimed TCKT
+    // @param   owner   -   address of the lender or borrower
+    public claimReward(owner:address)
+    {
+        // Check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        local amount:number := addressToReward.get(owner);
+
+        // Check if the claimer has any reward
+        Runtime.expect(amount > 0, "You don't have any rewards or already claimed reward");
+        Token.mint(_admin, owner, tckt_symbol, Decimal.convert(tckt_power, amount));
+        addressToReward.set(owner, 0);
+    }
+
+    // @notice  This function will be called by the lender to list one set of GFNFT
+    //          He can set deadline, token id of hammer, ghost and 6 badge
+    // @param   owner   -   address of the lender
+    // @param   deadline-   deadline
+    public listSet(owner:address, deadline:number, hammerTokenID:number, ghostTokenID:number, badgeTokenID1:number, badgeTokenID2:number, badgeTokenID3:number, badgeTokenID4:number, badgeTokenID5:number, badgeTokenID6:number)
+    {
+        // Check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+
+        local thisAddr:address := $THIS_ADDRESS;
+        local created:timestamp := Time.now()/* - Time.hours(deadline)*/;
+
+        // Save the loan into the storage_map variable
+        local badgeTokenIDs:array<number>;
+        badgeTokenIDs[0] := badgeTokenID1;
+        badgeTokenIDs[1] := badgeTokenID2;
+        badgeTokenIDs[2] := badgeTokenID3;
+        badgeTokenIDs[3] := badgeTokenID4;
+        badgeTokenIDs[4] := badgeTokenID5;
+        badgeTokenIDs[5] := badgeTokenID6;
+        local newLoan: loan := Struct.loan(current_loan_id, created, created/*fix this*/, owner, @null, hammerTokenID, ghostTokenID, badgeTokenIDs, true);
+        loanIdToLoan.set(current_loan_id, newLoan);
+
+        // Increment current loan id
+        current_loan_id := current_loan_id + 1;
+
+        // Transfer one set of NFTs from the lender's address to this contract
+        NFT.transfer(owner, thisAddr, gfnft_symbol, hammerTokenID);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, ghostTokenID);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID1);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID2);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID3);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID4);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID5);
+        NFT.transfer(owner, thisAddr, gfnft_symbol, badgeTokenID6);
+    }
+
+    // @notice  This function will be called by the lender to de-list one set of GFNFT
+    // @param   owner   -   address of the lender
+    // @param   loanID  -   his loan ID
+    public deListSet(owner:address, loanID:number)
+    {
+        // Check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+        Runtime.expect(loanID < current_loan_id, "invalid loan ID");
+
+        local thisAddr:address := $THIS_ADDRESS;
+        local myLoan: loan := loanIdToLoan.get(loanID);
+        Runtime.expect(myLoan.deadline <= Time.now(), "You should wait until the deadline");
+
+        // Update the struct to be inactive
+        local updatedLoan: loan := Struct.loan(myLoan.loanID, myLoan.created, myLoan.deadline, myLoan.lender, myLoan.borrower, myLoan.hammerTokenID, myLoan.ghostTokenID, myLoan.badgeTokenIDs, false);
+        loanIdToLoan.set(loanID, updatedLoan);
+
+        // Transfer one set of NFTs back to the lender's address
+        local hammerTokenID:number := myLoan.hammerTokenID;
+        local ghostTokenID:number := myLoan.ghostTokenID;
+        local badgeTokenIDs:array<number> := myLoan.badgeTokenIDs;
+
+        NFT.transfer(thisAddr, owner, gfnft_symbol, hammerTokenID);
+        NFT.transfer(thisAddr, owner, gfnft_symbol, ghostTokenID);
+        
+        local index:number := 0;
+        while (index < 6)
+        {
+            NFT.transfer(thisAddr, owner, gfnft_symbol, badgeTokenIDs[index]);
+            index := index + 1;
+        }
+    }
+
+    // @notice  This function will be called by the borrower who wanna borrow one set of GFNFT
+    // @param   owner   -   address of the lender
+    // @param   loanID  -   loan ID he wanna borrow
+    public borrowSet(owner:address, loanID:number)
+    {
+        // Check is witness and is current owner
+        Runtime.expect(Runtime.isWitness(owner), "invalid witness");
+        Runtime.expect(loanID < current_loan_id, "invalid loan ID");
+
+        local myLoan: loan := loanIdToLoan.get(loanID);
+        Runtime.expect(myLoan.deadline < Time.now(), "This loan is not valid list");
+
+        // Update the struct to set the borrower as well as created/deadline timestamp
+        local updatedLoan: loan := Struct.loan(myLoan.loanID, Time.now(), Time.now()/*fix this, now+deadline*/, myLoan.lender, owner, myLoan.hammerTokenID, myLoan.ghostTokenID, myLoan.badgeTokenIDs, true);
+        loanIdToLoan.set(loanID, updatedLoan);
+    }
+
+    /********************************/
+    /* Read functions start here... */
+    /********************************/
+
+    // @notice  This function returns current loan id
+    //          The total # of loan will be current_loan_id + 1
+    public getCurrentLoanID():number
+    {
+        return current_loan_id;
+    }
+
+    // @notice  This function check the status of the given loan id
+    //          Will be called by the lender
+    //          This just reflects the state machine of this Loan
+    //          DeList <=====> List <=====> Borrow
+    // @param   owner  -   address of the lender who want to read his list sets
+    // @param   loanID  -   loan id to check
+    // @return  state of the given loan id, denoting:
+    //          0 - invalid loan id, meaning it is not in the current loan id range
+    //          1 - not my list, includes my inactive list which is delisted
+    //          2 - my list, waiting for others
+    //          3 - my list, borrowed by someone else
+    public checkStatusOfLender(owner:address, loanID:number):number
+    {
+        local result:number := 0;
+        if (loanID >= current_loan_id)
+        {
+            result := 0;
+        }
+        else
+        {
+            local currentLoan: loan := loanIdToLoan.get(loanID);
+            local lender:address := currentLoan.lender;
+            if (owner != lender)
+            {
+                result := 1;
+            }
+            else
+            {
+                local isActive:bool := currentLoan.isActive;
+                if (!isActive) // This means this loan is delisted by the lender
+                {
+                    result := 1;
+                }
+                else
+                {
+                    local deadline:timestamp := currentLoan.deadline;
+                    if (Time.now() > deadline)
+                    {
+                        result := 2;
+                    }
+                    else
+                    {
+                        result := 3;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    // @notice  This function check the status of the given loan id
+    //          Will be called by the borrower
+    //          This just reflects the state machine of this Loan
+    //          DeList <=====> List <=====> Borrow
+    // @param   owner   -   address of the borrower who want to read his list sets
+    // @param   loanID  -   loan id to check
+    // @return  state of the given loan id, denoting:
+    //          0 - invalid loan id, meaning it is not in the current loan id range
+    //          1 - not my loan
+    //          2 - my loan, but expired
+    //          3 - my loan, active
+    public checkStatusOfBorrower(owner:address, loanID:number):number
+    {
+        local result:number := 0;
+        if (loanID >= current_loan_id)
+        {
+            result := 0;
+        }
+        else
+        {
+            local currentLoan: loan := loanIdToLoan.get(loanID);
+            local borrower:address := currentLoan.borrower;
+            if (owner != borrower)
+            {
+                result := 1;
+            }
+            else
+            {
+                local deadline:timestamp := currentLoan.deadline;
+                if (Time.now() > deadline)
+                {
+                    result := 2;
+                }
+                else
+                {   
+                    result := 3;
+                }
+            }
+        }
+        return result;
+    }
+
+    trigger onUpgrade(from:address) 
+	{
+		Runtime.expect(Runtime.isWitness(_admin), "witness failed");
+        return;
+    }
+}
