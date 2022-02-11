@@ -132,7 +132,7 @@ function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
-      rareBoxes[i - 1] +
+      rareBoxes[i - 1].nftId +
       '`)">OPEN' +
       "</a>" +
       "</div>" +
@@ -158,7 +158,7 @@ function reloadBoxGrid(commonBoxes, rareBoxes, epicBoxes) {
       '<div class="column-20 w-col w-col-2">' +
       '<a href="#" class="button-open-box w-button" onclick="burnOnWebsite(`' +
       "boxID" +
-      epicBoxes[i - 1] +
+      epicBoxes[i - 1].nftId +
       '`)">OPEN' +
       "</a>" +
       "</div>" +
